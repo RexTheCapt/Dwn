@@ -1,0 +1,103 @@
+fileFormatVersion: 2
+guid: f84daa7ed70c835448a5ab1b5962ba6e
+TextureImporter:
+  fileIDToRecycleName: {}
+  externalObjects: {}
+  serializedVersion: 7
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: -1
+    mipBias: -100
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  platformSettings:
+  - serializedVersion: 2
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+  - serializedVersion: 2
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 6c99b06d67c50a744a7694c401aea7b8
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+  spritePackingTag: 
+  pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
+  userData: '{"fileNaming":"PrefixGroupNames","groupMode":"ParentOnly","PackingTag":"","TargetDirectory":"Assets/Sprites/Player","AutoImport":false,"DefaultAlignment":"Center","DefaultPivot":{"x":0.5,"y":0.5},"ScaleFactor":"Full","DocAlignment":"Center","DocPivot":{"x":0.5,"y":0.5},"DocRoot":{"name":"DOCUMENT_ROOT","path":null,"indexId":[-1],"import":false,"useDefaults":false,"Alignment":"Center","Pivot":{"x":0.0,"y":0.0},"ScaleFactor":"Full","Childs":[{"name":"Layer
+    1","path":"Layer 1","indexId":[0],"import":true,"useDefaults":true,"Alignment":"Center","Pivot":{"x":0.5,"y":0.5},"ScaleFactor":"Full","Childs":[]},{"name":"Layer
+    2","path":"Layer 2","indexId":[1],"import":true,"useDefaults":true,"Alignment":"Center","Pivot":{"x":0.5,"y":0.5},"ScaleFactor":"Full","Childs":[]},{"name":"Layer
+    3","path":"Layer 3","indexId":[2],"import":true,"useDefaults":true,"Alignment":"Center","Pivot":{"x":0.5,"y":0.5},"ScaleFactor":"Full","Childs":[]},{"name":"Layer
+    4","path":"Layer 4","indexId":[3],"import":true,"useDefaults":true,"Alignment":"Center","Pivot":{"x":0.5,"y":0.5},"ScaleFactor":"Full","Childs":[]}]}}'
+  assetBundleName: 
+  assetBundleVariant: 
