@@ -143,6 +143,9 @@ MonoBehaviour:
   PlayerGameObject: {fileID: 232084778}
   ChunkParentTransform: {fileID: 1615689033}
   sprite: {fileID: 21300000, guid: 0aea033d18ae37440a69a162df155db9, type: 3}
+  generationDelayMs: 100
+  generateChunkOnce: 0
+  chunkMaxAge: 30
 --- !u!4 &92007408
 Transform:
   m_ObjectHideFlags: 0
