@@ -11,13 +11,15 @@ public class ChunkController : MonoBehaviour
 {
     public GameObject PlayerGameObject;
     public Transform ChunkParentTransform;
-    public Sprite sprite;
+    public Sprite[] sprites;
     public float generationDelayMs = 100f;
     public bool generateChunkOnce = false;
     public float chunkMaxAge = 30f;
+    public float perlinMod = 0.01f;
 
     private float _generationDelayTicks;
     private bool _generateChunkOnceTriggerd = false;
+    private float perlinOffset = 0;
 
     void Start()
     {
@@ -42,12 +44,12 @@ public class ChunkController : MonoBehaviour
             {
                 Vector2 currentPositionVector2 = currentChunkGameObject.GetComponent<ChunkPosition>().Position;
 
-                for (int cx = -1; cx <= 1; cx++)
+                for (int cx = -5; cx <= 5; cx++)
                 {
                     if (chunkGenerated)
                         break;
 
-                    for (int cy = -1; cy <= 1; cy++)
+                    for (int cy = -5; cy <= 5; cy++)
                     {
                         if (chunkGenerated)
                             break;
@@ -63,7 +65,7 @@ public class ChunkController : MonoBehaviour
                         }
                         else
                         {
-                            foundChunkGameObject.GetComponent<ChunkRemoval>().chunkAge = 0;
+                            //foundChunkGameObject.GetComponent<ChunkRemoval>().chunkAge = 0;
                         }
                     }
                 }
@@ -119,8 +121,9 @@ public class ChunkController : MonoBehaviour
             for (int by = 0 + (int)Chunk.transform.position.y; by < 16 + (int)Chunk.transform.position.y; by++)
             {
                 GameObject o = new GameObject();
+                
+                o.AddComponent<SpriteRenderer>().sprite = sprites[Convert.ToInt32(Mathf.PerlinNoise(bx * perlinMod + perlinOffset, by * perlinMod + perlinOffset) * 10)];
 
-                o.AddComponent<SpriteRenderer>().sprite = sprite;
                 o.transform.parent = Chunk.transform;
 
                 o.transform.position = new Vector3(bx, by, 0);
