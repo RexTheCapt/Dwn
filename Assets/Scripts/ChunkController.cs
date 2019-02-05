@@ -61,7 +61,6 @@ public class ChunkController : MonoBehaviour
                         {
                             GenerateChunk(newPositionVector2);
                             chunkGenerated = true;
-                            Log("Chunk generated");
                         }
                         else
                         {
