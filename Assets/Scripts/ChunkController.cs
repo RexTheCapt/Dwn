@@ -4,6 +4,7 @@ using System;
 using Boo.Lang;
 using UnityEngine;
 using UnityEngine.Experimental.LowLevel;
+using Random = System.Random;
 
 #endregion
 
@@ -13,16 +14,20 @@ public class ChunkController : MonoBehaviour
     public Transform ChunkParentTransform;
     public Sprite[] sprites;
     public float generationDelayMs = 100f;
-    public bool generateChunkOnce = false;
+    public int chunkRadious = 1;
     public float chunkMaxAge = 30f;
     public float perlinMod = 0.01f;
 
     private float _generationDelayTicks;
     private bool _generateChunkOnceTriggerd = false;
-    private float perlinOffset = 0;
+    private Vector2 perlinOffset = Vector2.zero;
+    private Random rdm = new Random();
+    private int _chunkRadious = 0;
 
     void Start()
     {
+        perlinOffset = new Vector2(rdm.Next(64000), rdm.Next(64000));
+
         GenerateChunk(0, 0);
     }
 
@@ -38,18 +43,17 @@ public class ChunkController : MonoBehaviour
             PlayerChunkTracker playerChunkTracker = PlayerGameObject.GetComponent<PlayerChunkTracker>();
             int chunkObjectIndex = playerChunkTracker.CurrentChunkGameObjects.Count - 1;
             ChunkPosition currentChunkPositionClass = playerChunkTracker.CurrentChunkGameObjects[chunkObjectIndex].GetComponent<ChunkPosition>();
-            //Vector2 currentPositionVector2 = currentChunkPositionClass.Position;
 
             foreach (GameObject currentChunkGameObject in playerChunkTracker.CurrentChunkGameObjects)
             {
                 Vector2 currentPositionVector2 = currentChunkGameObject.GetComponent<ChunkPosition>().Position;
 
-                for (int cx = -5; cx <= 5; cx++)
+                for (int cx = 0 - (_chunkRadious - 1); cx <= _chunkRadious - 1; cx++)
                 {
                     if (chunkGenerated)
                         break;
 
-                    for (int cy = -5; cy <= 5; cy++)
+                    for (int cy = 0- (_chunkRadious - 1); cy <= _chunkRadious - 1; cy++)
                     {
                         if (chunkGenerated)
                             break;
@@ -64,10 +68,19 @@ public class ChunkController : MonoBehaviour
                         }
                         else
                         {
-                            //foundChunkGameObject.GetComponent<ChunkRemoval>().chunkAge = 0;
+                            foundChunkGameObject.GetComponent<ChunkRemoval>().chunkAge = 0;
+                            foundChunkGameObject.SetActive(true);
                         }
                     }
                 }
+            }
+
+            if (!chunkGenerated)
+            {
+                _chunkRadious++;
+
+                if (_chunkRadious > chunkRadious)
+                    _chunkRadious = chunkRadious;
             }
         }
     }
@@ -83,15 +96,6 @@ public class ChunkController : MonoBehaviour
     }
     private void GenerateChunk(float cx, float cy)
     {
-        if (!generateChunkOnce)
-            _generateChunkOnceTriggerd = false;
-
-        if (_generateChunkOnceTriggerd)
-            return;
-
-        if (generateChunkOnce)
-            _generateChunkOnceTriggerd = true;
-
         GameObject Chunk = new GameObject();
         ChunkPosition chunkPosition = Chunk.gameObject.AddComponent<ChunkPosition>();
 
@@ -121,7 +125,7 @@ public class ChunkController : MonoBehaviour
             {
                 GameObject o = new GameObject();
                 
-                o.AddComponent<SpriteRenderer>().sprite = sprites[Convert.ToInt32(Mathf.PerlinNoise(bx * perlinMod + perlinOffset, by * perlinMod + perlinOffset) * 10)];
+                o.AddComponent<SpriteRenderer>().sprite = sprites[Convert.ToInt32(Mathf.PerlinNoise(bx * perlinMod + perlinOffset.x, by * perlinMod + perlinOffset.y) * 10)];
 
                 o.transform.parent = Chunk.transform;
 
