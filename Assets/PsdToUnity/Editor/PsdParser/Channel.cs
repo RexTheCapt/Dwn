@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,66 +18,63 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
     public class Channel : IChannel
     {
-        private byte[] data;
-        private ChannelType type;
-        private int height;
-        private int width;
-        private int[] rlePackLengths;
         private float opacity = 1.0f;
-        private long size;
+        private int[] rlePackLengths;
 
         public Channel(ChannelType type, int width, int height, long size)
         {
-            this.type = type;
-            this.width = width;
-            this.height = height;
-            this.size = size;
+            Type = type;
+            Width = width;
+            Height = height;
+            Size = size;
         }
 
         public Channel()
         {
-            
         }
 
-        public byte[] Data
+        public int Width { get; set; }
+
+        public int Height { get; set; }
+
+        public float Opacity
         {
-            get { return this.data; }
+            get { return opacity; }
+            set { opacity = value; }
         }
 
-        public ChannelType Type
-        {
-            get { return this.type; }
-            set { this.type = value; }
-        }
+        public long Size { get; set; }
+
+        public byte[] Data { get; private set; }
+
+        public ChannelType Type { get; set; }
 
         public void ReadHeader(PsdReader reader, CompressionType compressionType)
         {
             if (compressionType != CompressionType.RLE)
                 return;
 
-            this.rlePackLengths = new int[this.height];
+            rlePackLengths = new int[Height];
             if (reader.Version == 1)
-            {
-                for (int i = 0; i < this.height; i++)
-                {
-                    this.rlePackLengths[i] = reader.ReadInt16();
-                }
-            }
+                for (var i = 0; i < Height; i++)
+                    rlePackLengths[i] = reader.ReadInt16();
             else
-            {
-                for (int i = 0; i < this.height; i++)
-                {
-                    this.rlePackLengths[i] = reader.ReadInt32();
-                }
-            }
+                for (var i = 0; i < Height; i++)
+                    rlePackLengths[i] = reader.ReadInt32();
         }
 
         public void Read(PsdReader reader, int bpp, CompressionType compressionType)
@@ -84,126 +82,84 @@ namespace SubjectNerd.PsdImporter.PsdParser
             switch (compressionType)
             {
                 case CompressionType.Raw:
-                    this.ReadData(reader, bpp, compressionType, null);
+                    ReadData(reader, bpp, compressionType, null);
                     return;
 
                 case CompressionType.RLE:
-                    this.ReadData(reader, bpp, compressionType, this.rlePackLengths);
+                    ReadData(reader, bpp, compressionType, rlePackLengths);
                     return;
-
-                default:
-                    break;
             }
-        }
-
-        public int Width
-        {
-            get { return this.width; }
-            set { this.width = value; }
-        }
-
-        public int Height
-        {
-            get { return this.height; }
-            set { this.height = value; }
-        }
-
-        public float Opacity
-        {
-            get { return this.opacity; }
-            set { this.opacity = value; }
-        }
-
-        public long Size
-        {
-            get { return this.size; }
-            set { this.size = value; }
         }
 
         private void ReadData(PsdReader reader, int bps, CompressionType compressionType, int[] rlePackLengths)
         {
-            int length = PsdUtility.DepthToPitch(bps, this.width);
-            this.data = new byte[length * this.height];
+            var length = PsdUtility.DepthToPitch(bps, Width);
+            Data = new byte[length * Height];
             switch (compressionType)
             {
                 case CompressionType.Raw:
-                    reader.Read(this.data, 0, this.data.Length);
+                    reader.Read(Data, 0, Data.Length);
                     break;
 
                 case CompressionType.RLE:
-                    for (int i = 0; i < this.height; i++)
+                    for (var i = 0; i < Height; i++)
                     {
-                        byte[] buffer = new byte[rlePackLengths[i]];
-                        byte[] dst = new byte[length];
+                        var buffer = new byte[rlePackLengths[i]];
+                        var dst = new byte[length];
                         reader.Read(buffer, 0, rlePackLengths[i]);
                         DecodeRLE(buffer, dst, rlePackLengths[i], length);
-                        for (int j = 0; j < length; j++)
-                        {
-                            this.data[(i * length) + j] = (byte)(dst[j] * this.opacity);
-                        }
+                        for (var j = 0; j < length; j++) Data[i * length + j] = (byte) (dst[j] * opacity);
                     }
+
                     break;
             }
         }
 
         private static void DecodeRLE(byte[] src, byte[] dst, int packedLength, int unpackedLength)
         {
-            int index = 0;
-            int num2 = 0;
-            int num3 = 0;
+            var index = 0;
+            var num2 = 0;
+            var num3 = 0;
             byte num4 = 0;
-            int num5 = unpackedLength;
-            int num6 = packedLength;
-            while ((num5 > 0) && (num6 > 0))
+            var num5 = unpackedLength;
+            var num6 = packedLength;
+            while (num5 > 0 && num6 > 0)
             {
                 num3 = src[index++];
                 num6--;
                 if (num3 != 0x80)
                 {
-                    if (num3 > 0x80)
-                    {
-                        num3 -= 0x100;
-                    }
+                    if (num3 > 0x80) num3 -= 0x100;
                     if (num3 < 0)
                     {
                         num3 = 1 - num3;
-                        if (num6 == 0)
-                        {
-                            throw new Exception("Input buffer exhausted in replicate");
-                        }
+                        if (num6 == 0) throw new Exception("Input buffer exhausted in replicate");
                         if (num3 > num5)
-                        {
-                            throw new Exception(string.Format("Overrun in packbits replicate of {0} chars", num3 - num5));
-                        }
+                            throw new Exception(
+                                string.Format("Overrun in packbits replicate of {0} chars", num3 - num5));
                         num4 = src[index];
                         while (num3 > 0)
                         {
-                            if (num5 == 0)
-                            {
-                                break;
-                            }
+                            if (num5 == 0) break;
                             dst[num2++] = num4;
                             num5--;
                             num3--;
                         }
+
                         if (num5 > 0)
                         {
                             index++;
                             num6--;
                         }
+
                         continue;
                     }
+
                     num3++;
                     while (num3 > 0)
                     {
-                        if (num6 == 0)
-                        {
-                            throw new Exception("Input buffer exhausted in copy");
-                        }
-                        if (num5 == 0)
-                        {
-                            throw new Exception("Output buffer exhausted in copy");
-                        }
+                        if (num6 == 0) throw new Exception("Input buffer exhausted in copy");
+                        if (num5 == 0) throw new Exception("Output buffer exhausted in copy");
                         dst[num2++] = src[index++];
                         num5--;
                         num6--;
@@ -211,14 +167,10 @@ namespace SubjectNerd.PsdImporter.PsdParser
                     }
                 }
             }
+
             if (num5 > 0)
-            {
                 for (num3 = 0; num3 < num6; num3++)
-                {
                     dst[num2++] = 0;
-                }
-            }
         }
     }
 }
-

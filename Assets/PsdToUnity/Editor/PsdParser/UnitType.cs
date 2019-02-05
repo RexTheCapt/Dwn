@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,51 +18,51 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
     public enum UnitType
     {
-
         /// <summary>
-        /// angle: base degrees
+        ///     angle: base degrees
         /// </summary>
         Angle,
 
         /// <summary>
-        /// density: base per inch
+        ///     density: base per inch
         /// </summary>
         Density,
 
         /// <summary>
-        /// distance: base 72ppi
+        ///     distance: base 72ppi
         /// </summary>
         Distance,
 
         /// <summary>
-        /// none: coerced.
+        ///     none: coerced.
         /// </summary>
         None,
 
         /// <summary>
-        /// percent: unit value
+        ///     percent: unit value
         /// </summary>
         Percent,
 
         /// <summary>
-        /// pixels: tagged unit value
+        ///     pixels: tagged unit value
         /// </summary>
         Pixels,
 
         /// <summary>
-        /// points: tagged unit value
+        ///     points: tagged unit value
         /// </summary>
         Points,
 
         /// <summary>
-        /// : tagged unit value
+        ///     : tagged unit value
         /// </summary>
-        Millimeters,
+        Millimeters
     }
 }

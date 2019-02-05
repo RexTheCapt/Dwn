@@ -22,83 +22,92 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#region usings
+
 using System.Collections.Generic;
 using UnityEngine;
 
+#endregion
+
 namespace SubjectNerd.PsdImporter.Reconstructor
 {
-	public struct ReconstructData
-	{
-		/// <summary>
-		/// Sprite that corresponds to the layer indexId
-		/// </summary>
-		public Dictionary<int[], Sprite> spriteIndex;
-		/// <summary>
-		/// Anchor information that corresponds to the layer indexId.
-		/// Ratio of the Sprite size
-		/// </summary>
-		public Dictionary<int[], Vector2> spriteAnchors;
-		/// <summary>
-		/// Size and position data of PSD layer, corresponds to the layer indexId.
-		/// Data in document pixel space
-		/// </summary>
-		public Dictionary<int[], Rect> layerBoundsIndex;
-		/// <summary>
-		/// Size of the PSD, in pixels
-		/// </summary>
-		public Vector2 documentSize;
-		/// <summary>
-		/// Pivot position for the PSD document, in ratio of size
-		/// </summary>
-		public Vector2 documentPivot;
-		/// <summary>
-		/// Unity pixels per unit value of the PSD document
-		/// </summary>
-		public float documentPPU;
+    public struct ReconstructData
+    {
+        /// <summary>
+        ///     Sprite that corresponds to the layer indexId
+        /// </summary>
+        public Dictionary<int[], Sprite> spriteIndex;
 
-		public ReconstructData(Vector2 docSize, Vector2 docPivot, float PPU)
-		{
-			spriteIndex = new Dictionary<int[], Sprite>();
-			spriteAnchors = new Dictionary<int[], Vector2>();
-			layerBoundsIndex = new Dictionary<int[], Rect>();
-			documentPivot = docPivot;
-			documentSize = docSize;
-			documentPPU = PPU;
-		}
+        /// <summary>
+        ///     Anchor information that corresponds to the layer indexId.
+        ///     Ratio of the Sprite size
+        /// </summary>
+        public Dictionary<int[], Vector2> spriteAnchors;
 
-		public void AddSprite(int[] layerIdx, Sprite sprite, Vector2 anchor)
-		{
-			spriteIndex.Add(layerIdx, sprite);
-			spriteAnchors.Add(layerIdx, anchor);
-		}
-	}
+        /// <summary>
+        ///     Size and position data of PSD layer, corresponds to the layer indexId.
+        ///     Data in document pixel space
+        /// </summary>
+        public Dictionary<int[], Rect> layerBoundsIndex;
 
-	public interface IReconstructor
-	{
-		/// <summary>
-		/// Name to display in UI
-		/// </summary>
-		string DisplayName { get; }
+        /// <summary>
+        ///     Size of the PSD, in pixels
+        /// </summary>
+        public Vector2 documentSize;
 
-		/// <summary>
-		/// Given the current hierarchy selection, determine if hierarchy can be created there
-		/// </summary>
-		/// <param name="selection"></param>
-		/// <returns></returns>
-		bool CanReconstruct(GameObject selection);
+        /// <summary>
+        ///     Pivot position for the PSD document, in ratio of size
+        /// </summary>
+        public Vector2 documentPivot;
 
-		/// <summary>
-		/// Function that rebuilds the PSD structure
-		/// </summary>
-		/// <param name="root">The root of the PSD to reconstruct</param>
-		/// <param name="data">Data gathered by the importer for rebuilding the layers with</param>
-		/// <param name="selection">Object user has selected</param>
-		/// <returns></returns>
-		GameObject Reconstruct(ImportLayerData root, ReconstructData data, GameObject selection);
+        /// <summary>
+        ///     Unity pixels per unit value of the PSD document
+        /// </summary>
+        public float documentPPU;
 
-		/// <summary>
-		/// Message to display when CanReconstruct returns false
-		/// </summary>
-		string HelpMessage { get; }
-	}
+        public ReconstructData(Vector2 docSize, Vector2 docPivot, float PPU)
+        {
+            spriteIndex = new Dictionary<int[], Sprite>();
+            spriteAnchors = new Dictionary<int[], Vector2>();
+            layerBoundsIndex = new Dictionary<int[], Rect>();
+            documentPivot = docPivot;
+            documentSize = docSize;
+            documentPPU = PPU;
+        }
+
+        public void AddSprite(int[] layerIdx, Sprite sprite, Vector2 anchor)
+        {
+            spriteIndex.Add(layerIdx, sprite);
+            spriteAnchors.Add(layerIdx, anchor);
+        }
+    }
+
+    public interface IReconstructor
+    {
+        /// <summary>
+        ///     Name to display in UI
+        /// </summary>
+        string DisplayName { get; }
+
+        /// <summary>
+        ///     Message to display when CanReconstruct returns false
+        /// </summary>
+        string HelpMessage { get; }
+
+        /// <summary>
+        ///     Given the current hierarchy selection, determine if hierarchy can be created there
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        bool CanReconstruct(GameObject selection);
+
+        /// <summary>
+        ///     Function that rebuilds the PSD structure
+        /// </summary>
+        /// <param name="root">The root of the PSD to reconstruct</param>
+        /// <param name="data">Data gathered by the importer for rebuilding the layers with</param>
+        /// <param name="selection">Object user has selected</param>
+        /// <returns></returns>
+        GameObject Reconstruct(ImportLayerData root, ReconstructData data, GameObject selection);
+    }
 }

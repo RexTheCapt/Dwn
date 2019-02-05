@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,66 +18,69 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System;
+using Assets.PsdToUnity.Editor.PsdParser;
 using SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
-    class LayerExtraRecords
+    internal class LayerExtraRecords
     {
-        private readonly LayerMaskReader layerMask;
         private readonly LayerBlendingRangesReader blendingRanges;
-        private readonly LayerResourceReader resources;
+        private readonly LayerMaskReader layerMask;
         private readonly string name;
-        private SectionType sectionType;
-        private Guid placedID;
+        private readonly LayerResourceReader resources;
+        private readonly SectionType sectionType;
 
-        public LayerExtraRecords(LayerMaskReader layerMask, LayerBlendingRangesReader blendingRanges, LayerResourceReader resources, string name)
+        public LayerExtraRecords(LayerMaskReader layerMask, LayerBlendingRangesReader blendingRanges,
+            LayerResourceReader resources, string name)
         {
             this.layerMask = layerMask;
             this.blendingRanges = blendingRanges;
             this.resources = resources;
             this.name = name;
 
-            this.resources.TryGetValue<string>(ref this.name, "luni.Name");
-            this.resources.TryGetValue<SectionType>(ref this.sectionType, "lsct.SectionType");
+            this.resources.TryGetValue(ref this.name, "luni.Name");
+            this.resources.TryGetValue(ref sectionType, "lsct.SectionType");
 
-            if (this.resources.Contains("SoLd.Idnt") == true)
-                this.placedID = this.resources.ToGuid("SoLd.Idnt");
-            else if (this.resources.Contains("SoLE.Idnt") == true)
-                this.placedID = this.resources.ToGuid("SoLE.Idnt");
+            if (this.resources.Contains("SoLd.Idnt"))
+                PlacedID = this.resources.ToGuid("SoLd.Idnt");
+            else if (this.resources.Contains("SoLE.Idnt"))
+                PlacedID = this.resources.ToGuid("SoLE.Idnt");
         }
 
         public SectionType SectionType
         {
-            get { return this.sectionType; }
+            get { return sectionType; }
         }
 
-        public Guid PlacedID
-        {
-            get { return this.placedID; }
-        }
+        public Guid PlacedID { get; private set; }
 
         public string Name
         {
-            get { return this.name; }
+            get { return name; }
         }
 
         public LayerMask Mask
         {
-            get { return this.layerMask.Value; }
+            get { return layerMask.Value; }
         }
 
         public object BlendingRanges
         {
-            get { return this.blendingRanges.Value; }
+            get { return blendingRanges.Value; }
         }
 
         public IProperties Resources
         {
-            get { return this.resources.Value; }
+            get { return resources.Value; }
         }
     }
 }

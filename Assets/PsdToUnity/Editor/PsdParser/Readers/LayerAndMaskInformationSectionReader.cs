@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,38 +18,42 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
+using Assets.PsdToUnity.Editor.PsdParser;
 using SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers
 {
-    class LayerAndMaskInformationSectionReader : LazyValueReader<LayerAndMaskInformationSection>
+    internal class LayerAndMaskInformationSectionReader : LazyValueReader<LayerAndMaskInformationSection>
     {
         public LayerAndMaskInformationSectionReader(PsdReader reader, PsdDocument document)
             : base(reader, document)
         {
-            
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out LayerAndMaskInformationSection value)
         {
-            PsdDocument document = userData as PsdDocument;
+            var document = userData as PsdDocument;
 
-            LayerInfoReader layerInfo = new LayerInfoReader(reader, document);
+            var layerInfo = new LayerInfoReader(reader, document);
 
-            if (reader.Position + 4 >= this.EndPosition)
+            if (reader.Position + 4 >= EndPosition)
             {
                 value = new LayerAndMaskInformationSection(layerInfo, null, new Properties());
             }
             else
             {
-                GlobalLayerMaskInfoReader globalLayerMask = new GlobalLayerMaskInfoReader(reader);
-                DocumentResourceReader documentResource = new DocumentResourceReader(reader, this.EndPosition - reader.Position);
+                var globalLayerMask = new GlobalLayerMaskInfoReader(reader);
+                var documentResource = new DocumentResourceReader(reader, EndPosition - reader.Position);
 
                 value = new LayerAndMaskInformationSection(layerInfo, globalLayerMask, documentResource);
             }
         }
     }
 }
-

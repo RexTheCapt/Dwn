@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,39 +18,47 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 #pragma warning disable 0219 // variable assigned but not used.
+
+#region usings
+
 using System.Collections.Generic;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Structures
 {
-    class StructureObjectArray : Properties
+    internal class StructureObjectArray : Properties
     {
         public StructureObjectArray(PsdReader reader)
         {
-            int version = reader.ReadInt32();
-            this.Add("Name", reader.ReadString());
-            this.Add("ClassID", reader.ReadKey());
+            var version = reader.ReadInt32();
+            Add("Name", reader.ReadString());
+            Add("ClassID", reader.ReadKey());
 
-            int count = reader.ReadInt32();
+            var count = reader.ReadInt32();
 
-            List<Properties> items = new List<Properties>();
+            var items = new List<Properties>();
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
-                Properties props = new Properties();
+                var props = new Properties();
                 props.Add("Type1", reader.ReadKey());
                 props.Add("EnumName", reader.ReadType());
 
 
                 props.Add("Type2", PsdUtility.ToUnitType(reader.ReadType()));
-                int d4 = reader.ReadInt32();
+                var d4 = reader.ReadInt32();
                 props.Add("Values", reader.ReadDoubles(d4));
 
                 items.Add(props);
             }
-            this.Add("items", items.ToArray());
+
+            Add("items", items.ToArray());
         }
     }
 }

@@ -22,110 +22,115 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#region usings
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+#endregion
+
 namespace SubjectNerd.PsdImporter
 {
-	public enum ScaleFactor
-	{
-		Full,
-		Half,
-		Quarter
-	}
+    public enum ScaleFactor
+    {
+        Full,
+        Half,
+        Quarter
+    }
 
-	public enum NamingConvention
-	{
-		LayerNameOnly,
-		CreateGroupFolders,
+    public enum NamingConvention
+    {
+        LayerNameOnly,
+        CreateGroupFolders,
         PrefixGroupNames
-	}
+    }
 
-	public enum GroupMode
-	{
-		ParentOnly,
-		FullPath
-	}
-	
-	public class ImportLayerData
-	{
-		public string name;
-		public string path;
-		public int[] indexId;
-		public bool import;
-		public bool useDefaults;
-		public SpriteAlignment Alignment;
-		public Vector2 Pivot;
-		public ScaleFactor ScaleFactor;
+    public enum GroupMode
+    {
+        ParentOnly,
+        FullPath
+    }
 
-		public List<ImportLayerData> Childs;
+    public class ImportLayerData
+    {
+        public SpriteAlignment Alignment;
 
-		public void Iterate(Action<ImportLayerData> layerCallback,
-							Func<ImportLayerData, bool> canEnterGroup = null,
-							Action<ImportLayerData> enterGroupCallback = null,
-							Action<ImportLayerData> exitGroupCallback = null)
-		{
-			for (int i = Childs.Count - 1; i >= 0; i--)
-			{
-				var layer = Childs[i];
-				if (layer == null)
-					continue;
+        public List<ImportLayerData> Childs;
+        public bool import;
+        public int[] indexId;
+        public string name;
+        public string path;
+        public Vector2 Pivot;
+        public ScaleFactor ScaleFactor;
+        public bool useDefaults;
 
-				if (layerCallback != null)
-					layerCallback(layer);
+        public void Iterate(Action<ImportLayerData> layerCallback,
+            Func<ImportLayerData, bool> canEnterGroup = null,
+            Action<ImportLayerData> enterGroupCallback = null,
+            Action<ImportLayerData> exitGroupCallback = null)
+        {
+            for (var i = Childs.Count - 1; i >= 0; i--)
+            {
+                var layer = Childs[i];
+                if (layer == null)
+                    continue;
 
-				bool isGroup = layer.Childs.Count > 0;
+                if (layerCallback != null)
+                    layerCallback(layer);
 
-				if (isGroup)
-				{
-					bool enterGroup = true;
-					if (canEnterGroup != null)
-						enterGroup = canEnterGroup(layer);
+                var isGroup = layer.Childs.Count > 0;
 
-					if (enterGroup)
-					{
-						if (enterGroupCallback != null)
-							enterGroupCallback(layer);
+                if (isGroup)
+                {
+                    var enterGroup = true;
+                    if (canEnterGroup != null)
+                        enterGroup = canEnterGroup(layer);
 
-						layer.Iterate(layerCallback, canEnterGroup, enterGroupCallback, exitGroupCallback);
+                    if (enterGroup)
+                    {
+                        if (enterGroupCallback != null)
+                            enterGroupCallback(layer);
 
-						if (exitGroupCallback != null)
-							exitGroupCallback(layer);
-					}
-				}
-			}
-		}
-	}
-	
-	public class ImportUserData
-	{
-		public NamingConvention fileNaming;
-		public GroupMode groupMode;
-		public string PackingTag;
-		public string TargetDirectory;
-		public bool AutoImport;
-		public SpriteAlignment DefaultAlignment = SpriteAlignment.Center;
-		public Vector2 DefaultPivot = new Vector2(0.5f, 0.5f);
-		public ScaleFactor ScaleFactor = ScaleFactor.Full;
-		public SpriteAlignment DocAlignment = SpriteAlignment.Center;
-		public Vector2 DocPivot = new Vector2(0.5f, 0.5f);
+                        layer.Iterate(layerCallback, canEnterGroup, enterGroupCallback, exitGroupCallback);
 
-		public ImportLayerData DocRoot;
+                        if (exitGroupCallback != null)
+                            exitGroupCallback(layer);
+                    }
+                }
+            }
+        }
+    }
 
-		public ImportLayerData GetLayerData(int[] layerIdx)
-		{
-			if (DocRoot == null)
-				return null;
+    public class ImportUserData
+    {
+        public bool AutoImport;
+        public SpriteAlignment DefaultAlignment = SpriteAlignment.Center;
+        public Vector2 DefaultPivot = new Vector2(0.5f, 0.5f);
+        public SpriteAlignment DocAlignment = SpriteAlignment.Center;
+        public Vector2 DocPivot = new Vector2(0.5f, 0.5f);
 
-			ImportLayerData currentLayer = DocRoot;
-			foreach (int idx in layerIdx)
-			{
-				if (idx < 0 || idx >= currentLayer.Childs.Count)
-					return null;
-				currentLayer = currentLayer.Childs[idx];
-			}
-			return currentLayer;
-		}
-	}
+        public ImportLayerData DocRoot;
+        public NamingConvention fileNaming;
+        public GroupMode groupMode;
+        public string PackingTag;
+        public ScaleFactor ScaleFactor = ScaleFactor.Full;
+        public string TargetDirectory;
+
+        public ImportLayerData GetLayerData(int[] layerIdx)
+        {
+            if (DocRoot == null)
+                return null;
+
+            var currentLayer = DocRoot;
+            foreach (var idx in layerIdx)
+            {
+                if (idx < 0 || idx >= currentLayer.Childs.Count)
+                    return null;
+                currentLayer = currentLayer.Childs[idx];
+            }
+
+            return currentLayer;
+        }
+    }
 }

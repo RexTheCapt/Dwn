@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,50 +18,36 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.IO;
+using Assets.PsdToUnity.Editor.PsdParser;
 using SubjectNerd.PsdImporter.PsdParser.Readers;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
     public struct FileHeaderSection
     {
-        public int Depth
-        {
-            get;
-            set;
-        }
+        public int Depth { get; set; }
 
-        public int NumberOfChannels
-        {
-            get;
-            set;
-        }
+        public int NumberOfChannels { get; set; }
 
-        public ColorMode ColorMode
-        {
-            get;
-            set;
-        }
+        public ColorMode ColorMode { get; set; }
 
-        public int Height
-        {
-            get;
-            set;
-        }
+        public int Height { get; set; }
 
-        public int Width
-        {
-            get;
-            set;
-        }
+        public int Width { get; set; }
 
         public static FileHeaderSection FromFile(string filename)
         {
-            using (FileStream stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (PsdReader reader = new PsdReader(stream, new PathResolver(), new Uri(Path.GetDirectoryName(filename))))
+            using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var reader = new PsdReader(stream, new PathResolver(), new Uri(Path.GetDirectoryName(filename))))
             {
                 reader.ReadDocumentHeader();
                 return FileHeaderSectionReader.Read(reader);

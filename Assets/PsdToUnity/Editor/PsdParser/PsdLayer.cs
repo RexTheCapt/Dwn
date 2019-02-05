@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,172 +18,157 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.Linq;
+using SubjectNerd.PsdImporter.PsdParser;
 using SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation;
 
-namespace SubjectNerd.PsdImporter.PsdParser
+#endregion
+
+namespace Assets.PsdToUnity.Editor.PsdParser
 {
     public class PsdLayer : IPsdLayer
     {
-        private readonly PsdDocument document;
-        private readonly LayerRecords records;
+        private static readonly PsdLayer[] EmptyChilds = { };
+        private readonly PsdDocument _document;
+        private readonly LayerRecords _records;
 
-        private int left, top, right, bottom;
+        private ChannelsReader _channels;
 
-        private PsdLayer[] childs;
-        private PsdLayer parent;
-        private ILinkedLayer linkedLayer;
+        private PsdLayer[] _childs;
 
-        private ChannelsReader channels;
-
-        private static PsdLayer[] emptyChilds = new PsdLayer[] { };
+        private ILinkedLayer _linkedLayer;
 
         public PsdLayer(PsdReader reader, PsdDocument document)
         {
-            this.document = document;
-            this.records = LayerRecordsReader.Read(reader);
-            this.records = LayerExtraRecordsReader.Read(reader, this.records);
-			
-            this.left = this.records.Left;
-            this.top = this.records.Top;
-            this.right = this.records.Right;
-            this.bottom = this.records.Bottom;
+            _document = document;
+            _records = LayerRecordsReader.Read(reader);
+            _records = LayerExtraRecordsReader.Read(reader, _records);
+
+            Left = _records.Left;
+            Top = _records.Top;
+            Right = _records.Right;
+            Bottom = _records.Bottom;
         }
 
         public Channel[] Channels
         {
-            get { return this.channels.Value; }
+            get { return _channels.Value; }
         }
 
         public SectionType SectionType
         {
-            get { return this.records.SectionType; }
+            get { return _records.SectionType; }
         }
 
-        public string Name
+        public bool IsVisible
         {
-            get { return this.records.Name; }
+            get { return (_records.Flags & LayerFlags.Visible) != LayerFlags.Visible; }
         }
 
-	    public bool IsVisible
-	    {
-			get { return (this.records.Flags & LayerFlags.Visible) != LayerFlags.Visible; }
-	    }
-
-	    public bool IsGroup
-	    {
-			get { return (records.SectionType == SectionType.Closed || records.SectionType == SectionType.Opend); }
-	    }
-
-	    public bool IsFolderClosed
-	    {
-			get { return records.SectionType == SectionType.Closed; }
-	    }
-
-	    public bool IsFolderOpen
-	    {
-		    get { return records.SectionType == SectionType.Opend; }
-	    }
-
-        public float Opacity
+        public bool IsGroup
         {
-            get { return (((float)this.records.Opacity) / 255f); }
+            get { return _records.SectionType == SectionType.Closed || _records.SectionType == SectionType.Opend; }
         }
 
-        public int Left
+        public bool IsFolderClosed
         {
-            get { return this.left; }
+            get { return _records.SectionType == SectionType.Closed; }
         }
 
-        public int Top
+        public bool IsFolderOpen
         {
-            get { return this.top; }
+            get { return _records.SectionType == SectionType.Opend; }
         }
 
-        public int Right
-        {
-            get { return this.right; }
-        }
-
-        public int Bottom
-        {
-            get { return this.bottom; }
-        }
-
-        public int Width
-        {
-            get { return this.right - this.left; }
-        }
-
-        public int Height
-        {
-            get { return this.bottom - this.top; }
-        }
-
-        public int Depth
-        {
-            get { return this.document.FileHeaderSection.Depth; }
-        }
-
-        public bool IsClipping
-        {
-            get { return this.records.Clipping; }
-        }
-
-        public BlendMode BlendMode
-        {
-            get { return this.records.BlendMode; }
-        }
-
-        public PsdLayer Parent
-        {
-            get { return this.parent; }
-            set { this.parent = value; }
-        }
+        public PsdLayer Parent { get; set; }
 
         public PsdLayer[] Childs
         {
             get
             {
-                if (this.childs == null)
-                    return emptyChilds;
-                return this.childs;
+                if (_childs == null)
+                    return EmptyChilds;
+                return _childs;
             }
-            set { this.childs = value; }
-        }
-
-        public IProperties Resources
-        {
-            get { return this.records.Resources; }
-        }
-
-        public PsdDocument Document
-        {
-            get { return this.document; }
+            set { _childs = value; }
         }
 
         public LayerRecords Records
         {
-            get { return this.records; }
+            get { return _records; }
+        }
+
+        public string Name
+        {
+            get { return _records.Name; }
+        }
+
+        public float Opacity
+        {
+            get { return _records.Opacity / 255f; }
+        }
+
+        public int Left { get; private set; }
+
+        public int Top { get; private set; }
+
+        public int Right { get; private set; }
+
+        public int Bottom { get; private set; }
+
+        public int Width
+        {
+            get { return Right - Left; }
+        }
+
+        public int Height
+        {
+            get { return Bottom - Top; }
+        }
+
+        public int Depth
+        {
+            get { return _document.FileHeaderSection.Depth; }
+        }
+
+        public bool IsClipping
+        {
+            get { return _records.Clipping; }
+        }
+
+        public BlendMode BlendMode
+        {
+            get { return _records.BlendMode; }
+        }
+
+        public IProperties Resources
+        {
+            get { return _records.Resources; }
+        }
+
+        public PsdDocument Document
+        {
+            get { return _document; }
         }
 
         public ILinkedLayer LinkedLayer
         {
             get
             {
-                Guid placeID = this.records.PlacedID;
+                var placeId = _records.PlacedId;
 
-                if (placeID == Guid.Empty)
+                if (placeId == Guid.Empty)
                     return null;
 
-                if (this.linkedLayer == null)
-                {
-                    this.linkedLayer = this.document.LinkedLayers.Where(i => i.ID == placeID && i.HasDocument).FirstOrDefault();
-                }
-                return this.linkedLayer;
+                if (_linkedLayer == null)
+                    _linkedLayer = _document.LinkedLayers.Where(i => i.ID == placeId && i.HasDocument).FirstOrDefault();
+                return _linkedLayer;
             }
         }
 
@@ -190,9 +176,9 @@ namespace SubjectNerd.PsdImporter.PsdParser
         {
             get
             {
-                if (this.records.SectionType != SectionType.Normal)
+                if (_records.SectionType != SectionType.Normal)
                     return false;
-                if (this.Width == 0 || this.Height == 0)
+                if (Width == 0 || Height == 0)
                     return false;
                 return true;
             }
@@ -200,26 +186,26 @@ namespace SubjectNerd.PsdImporter.PsdParser
 
         public bool HasMask
         {
-            get { return this.records.Mask != null; }
+            get { return _records.Mask != null; }
         }
 
         public void ReadChannels(PsdReader reader)
         {
-            this.channels = new ChannelsReader(reader, this.records.ChannelSize, this);
+            _channels = new ChannelsReader(reader, _records.ChannelSize, this);
         }
 
         public void ComputeBounds()
         {
-            SectionType sectionType = this.records.SectionType;
+            var sectionType = _records.SectionType;
             if (sectionType != SectionType.Opend && sectionType != SectionType.Closed)
                 return;
 
-            int left = int.MaxValue;
-            int top = int.MaxValue;
-            int right = int.MinValue;
-            int bottom = int.MinValue;
+            var left = int.MaxValue;
+            var top = int.MaxValue;
+            var right = int.MinValue;
+            var bottom = int.MinValue;
 
-            bool isSet = false;
+            var isSet = false;
 
             foreach (var item in this.Descendants())
             {
@@ -229,14 +215,14 @@ namespace SubjectNerd.PsdImporter.PsdParser
                 // 일반 레이어인데 비어 있을때
                 if (item.Resources.Contains("PlLd.Transformation"))
                 {
-                    double[] transforms = (double[])item.Resources["PlLd.Transformation"];
-                    double[] xx = new double[] { transforms[0], transforms[2], transforms[4], transforms[6], };
-                    double[] yy = new double[] { transforms[1], transforms[3], transforms[5], transforms[7], };
+                    var transforms = (double[]) item.Resources["PlLd.Transformation"];
+                    double[] xx = {transforms[0], transforms[2], transforms[4], transforms[6]};
+                    double[] yy = {transforms[1], transforms[3], transforms[5], transforms[7]};
 
-                    int l = (int)Math.Ceiling(xx.Min());
-                    int r = (int)Math.Ceiling(xx.Max());
-                    int t = (int)Math.Ceiling(yy.Min());
-                    int b = (int)Math.Ceiling(yy.Max());
+                    var l = (int) Math.Ceiling(xx.Min());
+                    var r = (int) Math.Ceiling(xx.Max());
+                    var t = (int) Math.Ceiling(yy.Min());
+                    var b = (int) Math.Ceiling(yy.Max());
                     left = Math.Min(l, left);
                     top = Math.Min(t, top);
                     right = Math.Max(r, right);
@@ -249,16 +235,17 @@ namespace SubjectNerd.PsdImporter.PsdParser
                     right = Math.Max(item.Right, right);
                     bottom = Math.Max(item.Bottom, bottom);
                 }
+
                 isSet = true;
             }
 
             if (isSet == false)
                 return;
 
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
+            Left = left;
+            Top = top;
+            Right = right;
+            Bottom = bottom;
         }
 
         #region IPsdLayer
@@ -267,23 +254,23 @@ namespace SubjectNerd.PsdImporter.PsdParser
         {
             get
             {
-                if (this.parent == null)
-                    return this.document;
-                return this.parent;
+                if (Parent == null)
+                    return _document;
+                return Parent;
             }
         }
 
-        IChannel[] IImageSource.Channels
+        Channel[] IImageSource.Channels
         {
-            get { return this.channels.Value; }
+            get { return _channels.Value; }
         }
 
         IPsdLayer[] IPsdLayer.Childs
         {
-            get { return this.Childs; }
+            // ReSharper disable once CoVariantArrayConversion
+            get { return Childs; }
         }
 
         #endregion
     }
 }
-

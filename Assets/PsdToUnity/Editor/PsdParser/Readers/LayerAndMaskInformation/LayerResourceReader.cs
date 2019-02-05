@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,31 +18,37 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+#endregion
+
+#region usings
+
+using Assets.PsdToUnity.Editor.PsdParser;
+
 #endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class LayerResourceReader : LazyProperties
+    internal class LayerResourceReader : LazyProperties
     {
         public LayerResourceReader(PsdReader reader, long length)
             : base(reader, length, null)
         {
-            
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out IProperties value)
         {
-            Properties props = new Properties();
+            var props = new Properties();
 
-            while (reader.Position < this.EndPosition)
+            while (reader.Position < EndPosition)
             {
                 reader.ValidateSignature();
-                string resourceID = reader.ReadType();
+                var resourceID = reader.ReadType();
                 long length = reader.ReadInt32();
                 length += length % 2;
 
-                ResourceReaderBase resourceReader = ReaderCollector.CreateReader(resourceID, reader, length);
-                string resourceName = ReaderCollector.GetDisplayName(resourceID);
+                var resourceReader = ReaderCollector.CreateReader(resourceID, reader, length);
+                var resourceName = ReaderCollector.GetDisplayName(resourceID);
 
                 props[resourceName] = resourceReader;
             }
@@ -50,4 +57,3 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
         }
     }
 }
-

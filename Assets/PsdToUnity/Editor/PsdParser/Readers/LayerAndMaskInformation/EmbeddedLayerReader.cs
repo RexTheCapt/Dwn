@@ -1,6 +1,7 @@
 ﻿#pragma warning disable 0219 // variable assigned but not used.
 
 #region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -19,56 +20,58 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.IO;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class EmbeddedLayerReader : ValueReader<EmbeddedLayer>
+    internal class EmbeddedLayerReader : ValueReader<EmbeddedLayer>
     {
         public EmbeddedLayerReader(PsdReader reader)
             : base(reader, true, null)
         {
-            
         }
 
         protected override long OnLengthGet(PsdReader reader)
         {
-            return (reader.ReadInt64() + 3) & (~3);
+            return (reader.ReadInt64() + 3) & ~3;
         }
 
         private Uri ReadAboluteUri(PsdReader reader)
         {
             IProperties props = new DescriptorStructure(reader);
-            if (props.Contains("fullPath") == true)
+            if (props.Contains("fullPath"))
             {
-                Uri absoluteUri = new Uri(props["fullPath"] as string);
-                if (File.Exists(absoluteUri.LocalPath) == true)
+                var absoluteUri = new Uri(props["fullPath"] as string);
+                if (File.Exists(absoluteUri.LocalPath))
                     return absoluteUri;
             }
 
-            if (props.Contains("relPath") == true)
+            if (props.Contains("relPath"))
             {
-                string relativePath = props["relPath"] as string;
-                Uri absoluteUri = reader.Resolver.ResolveUri(reader.Uri, relativePath);
-                if (File.Exists(absoluteUri.LocalPath) == true)
+                var relativePath = props["relPath"] as string;
+                var absoluteUri = reader.Resolver.ResolveUri(reader.Uri, relativePath);
+                if (File.Exists(absoluteUri.LocalPath))
                     return absoluteUri;
             }
 
-            if (props.Contains("Nm") == true)
+            if (props.Contains("Nm"))
             {
-                string name = props["Nm"] as string;
-                Uri absoluteUri = reader.Resolver.ResolveUri(reader.Uri, name);
-                if (File.Exists(absoluteUri.LocalPath) == true)
+                var name = props["Nm"] as string;
+                var absoluteUri = reader.Resolver.ResolveUri(reader.Uri, name);
+                if (File.Exists(absoluteUri.LocalPath))
                     return absoluteUri;
             }
 
-            if (props.Contains("fullPath") == true)
-            {
-                return new Uri(props["fullPath"] as string);
-            }
+            if (props.Contains("fullPath")) return new Uri(props["fullPath"] as string);
 
             return null;
         }
@@ -77,16 +80,16 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
         {
             reader.ValidateSignature("liFE");
 
-            int version = reader.ReadInt32();
-            
-            Guid id = new Guid(reader.ReadPascalString(1));
-            string name = reader.ReadString();
-            string type = reader.ReadType();
-            string creator = reader.ReadType();
+            var version = reader.ReadInt32();
 
-            long length = reader.ReadInt64();
-            IProperties properties = reader.ReadBoolean() == true ? new DescriptorStructure(reader) : null;
-            Uri absoluteUri = this.ReadAboluteUri(reader);
+            var id = new Guid(reader.ReadPascalString(1));
+            var name = reader.ReadString();
+            var type = reader.ReadType();
+            var creator = reader.ReadType();
+
+            var length = reader.ReadInt64();
+            IProperties properties = reader.ReadBoolean() ? new DescriptorStructure(reader) : null;
+            var absoluteUri = ReadAboluteUri(reader);
 
             value = new EmbeddedLayer(id, reader.Resolver, absoluteUri);
         }

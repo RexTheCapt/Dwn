@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,53 +18,49 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class LayerInfoReader : ValueReader<PsdLayer[]>
+    internal class LayerInfoReader : ValueReader<PsdLayer[]>
     {
         public LayerInfoReader(PsdReader reader, PsdDocument document)
             : base(reader, true, document)
         {
-            
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out PsdLayer[] value)
         {
-            PsdDocument document = userData as PsdDocument;
-            int layerCount = Math.Abs((int)reader.ReadInt16());
+            var document = userData as PsdDocument;
+            var layerCount = Math.Abs((int) reader.ReadInt16());
 
-            PsdLayer[] layers = new PsdLayer[layerCount];
-            for (int i = 0; i < layerCount; i++)
-            {
-                layers[i] = new PsdLayer(reader, document);
-            }
+            var layers = new PsdLayer[layerCount];
+            for (var i = 0; i < layerCount; i++) layers[i] = new PsdLayer(reader, document);
 
-            foreach (var item in layers)
-            {
-                item.ReadChannels(reader);
-            }
+            foreach (var item in layers) item.ReadChannels(reader);
 
             layers = Initialize(null, layers);
 
-            foreach (var item in layers.SelectMany(item => item.Descendants()).Reverse())
-            {
-                item.ComputeBounds();
-            }
+            foreach (var item in layers.SelectMany(item => item.Descendants()).Reverse()) item.ComputeBounds();
 
             value = layers;
         }
 
         public static PsdLayer[] Initialize(PsdLayer parent, PsdLayer[] layers)
         {
-            Stack<PsdLayer> stack = new Stack<PsdLayer>();
-            List<PsdLayer> rootLayers = new List<PsdLayer>();
-            Dictionary<PsdLayer, List<PsdLayer>> layerToChilds = new Dictionary<PsdLayer, List<PsdLayer>>();
+            var stack = new Stack<PsdLayer>();
+            var rootLayers = new List<PsdLayer>();
+            var layerToChilds = new Dictionary<PsdLayer, List<PsdLayer>>();
 
             foreach (var item in layers.Reverse())
             {
@@ -75,12 +72,9 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 
                 if (parent != null)
                 {
-                    if (layerToChilds.ContainsKey(parent) == false)
-                    {
-                        layerToChilds.Add(parent, new List<PsdLayer>());
-                    }
+                    if (layerToChilds.ContainsKey(parent) == false) layerToChilds.Add(parent, new List<PsdLayer>());
 
-                    List<PsdLayer> childs = layerToChilds[parent];
+                    var childs = layerToChilds[parent];
                     childs.Insert(0, item);
                     item.Parent = parent;
                 }
@@ -96,13 +90,9 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
                 }
             }
 
-            foreach (var item in layerToChilds)
-            {
-                item.Key.Childs = item.Value.ToArray();
-            }
+            foreach (var item in layerToChilds) item.Key.Childs = item.Value.ToArray();
 
             return rootLayers.ToArray();
         }
     }
 }
-

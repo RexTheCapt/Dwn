@@ -4,7 +4,10 @@ using UnityEngine;
 
 #endregion
 
-public class ChunkInfo : MonoBehaviour
+namespace Assets.Scripts
 {
-    public ChunkPosition chunkPosition;
+    public class ChunkInfo : MonoBehaviour
+    {
+        public ChunkPosition ChunkPosition;
+    }
 }

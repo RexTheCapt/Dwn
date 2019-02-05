@@ -1,34 +1,43 @@
 ﻿#region usings
 
 using Boo.Lang;
+using JetBrains.Annotations;
 using UnityEngine;
 
 #endregion
 
-public class PlayerChunkTracker : MonoBehaviour
+namespace Assets.Scripts
 {
-    public List<GameObject> CurrentChunkGameObjects = new List<GameObject>();
-    public GameObject[] GameObjects;
-
-    void Update()
+    public class PlayerChunkTracker : MonoBehaviour
     {
-        GameObjects = new GameObject[CurrentChunkGameObjects.Count];
+        public List<GameObject> CurrentChunkGameObjects = new List<GameObject>();
+        public GameObject[] GameObjects;
 
-        for (int i = 0; i < GameObjects.Length; i++)
+        [UsedImplicitly]
+        void Update()
         {
-            GameObjects[i] = CurrentChunkGameObjects[i];
+            GameObjects = new GameObject[CurrentChunkGameObjects.Count];
+
+            for (int i = 0; i < GameObjects.Length; i++)
+            {
+                GameObjects[i] = CurrentChunkGameObjects[i];
+            }
         }
-    }
 
-    void OnTriggerEnter2D(Collider2D collider)
-    {
-        if (collider.gameObject.tag == "Chunk")
-            CurrentChunkGameObjects.Add(collider.gameObject);
-    }
+        [UsedImplicitly]
+        // ReSharper disable once ParameterHidesMember
+        void OnTriggerEnter2D(Collider2D collider2D)
+        {
+            if (collider2D.gameObject.tag == "Chunk")
+                CurrentChunkGameObjects.Add(collider2D.gameObject);
+        }
 
-    void OnTriggerExit2D(Collider2D collider)
-    {
-        if (CurrentChunkGameObjects.Contains(collider.gameObject))
-            CurrentChunkGameObjects.Remove(collider.gameObject);
+        [UsedImplicitly]
+        // ReSharper disable once ParameterHidesMember
+        void OnTriggerExit2D(Collider2D collider2D)
+        {
+            if (CurrentChunkGameObjects.Contains(collider2D.gameObject))
+                CurrentChunkGameObjects.Remove(collider2D.gameObject);
+        }
     }
 }

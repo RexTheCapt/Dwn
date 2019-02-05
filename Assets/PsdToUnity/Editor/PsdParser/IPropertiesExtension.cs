@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,9 +18,14 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
@@ -32,7 +38,7 @@ namespace SubjectNerd.PsdImporter.PsdParser
 
         public static T ToValue<T>(this IProperties props, string property, params string[] properties)
         {
-            return (T)props[GeneratePropertyName(property, properties)];
+            return (T) props[GeneratePropertyName(property, properties)];
         }
 
         public static Guid ToGuid(this IProperties props, string property, params string[] properties)
@@ -70,9 +76,10 @@ namespace SubjectNerd.PsdImporter.PsdParser
             return ToValue<bool>(props, property, properties);
         }
 
-        public static bool TryGetValue<T>(this IProperties props, ref T value, string property, params string[] properties)
+        public static bool TryGetValue<T>(this IProperties props, ref T value, string property,
+            params string[] properties)
         {
-            string propertyName = GeneratePropertyName(property, properties);
+            var propertyName = GeneratePropertyName(property, properties);
             if (props.Contains(propertyName) == false)
                 return false;
             value = props.ToValue<T>(propertyName);

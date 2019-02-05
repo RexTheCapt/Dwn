@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,19 +18,20 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
-    class InternalDocument : PsdDocument
+    internal class InternalDocument : PsdDocument
     {
-        public InternalDocument()
-        {
-            
-        }
-
         protected override void OnDisposed(EventArgs e)
         {
             throw new Exception();

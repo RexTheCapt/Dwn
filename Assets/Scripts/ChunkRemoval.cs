@@ -1,40 +1,49 @@
 ﻿#region usings
 
+using JetBrains.Annotations;
 using UnityEngine;
 
 #endregion
 
-public class ChunkRemoval : MonoBehaviour
+namespace Assets.Scripts
 {
-    public GameObject ChunkControllerGameObject;
-    public float chunkAge;
-    public bool playerIsClose;
-
-    private float _maxChunkAge
+    public class ChunkRemoval : MonoBehaviour
     {
-        get { return ChunkControllerGameObject.GetComponent<ChunkController>().chunkMaxAge; }
-    }
+        public GameObject ChunkControllerGameObject;
+        public float ChunkAge;
+        public bool PlayerIsClose;
 
-    void Update()
-    {
-        if (!playerIsClose)
-            chunkAge += Time.deltaTime;
-        else
-            chunkAge = 0;
+        private float MaxChunkAge
+        {
+            get { return ChunkControllerGameObject.GetComponent<ChunkController>().ChunkMaxAge; }
+        }
 
-        if(chunkAge > _maxChunkAge)
-            Destroy(gameObject);
-    }
+        [UsedImplicitly]
+        void Update()
+        {
+            if (!PlayerIsClose)
+                ChunkAge += Time.deltaTime;
+            else
+                ChunkAge = 0;
 
-    void OnTriggerEnter2D(Collider2D collider2D)
-    {
-        if (collider2D.gameObject.tag == "Player")
-            playerIsClose = true;
-    }
+            if(ChunkAge > MaxChunkAge)
+                Destroy(gameObject);
+        }
 
-    void OnTriggerExit2D(Collider2D collider2D)
-    {
-        if (collider2D.gameObject.tag == "Player")
-            playerIsClose = false;
+        [UsedImplicitly]
+        // ReSharper disable once ParameterHidesMember
+        void OnTriggerEnter2D(Collider2D collider2D)
+        {
+            if (collider2D.gameObject.tag == "Player")
+                PlayerIsClose = true;
+        }
+
+        [UsedImplicitly]
+        // ReSharper disable once ParameterHidesMember
+        void OnTriggerExit2D(Collider2D collider2D)
+        {
+            if (collider2D.gameObject.tag == "Player")
+                PlayerIsClose = false;
+        }
     }
 }

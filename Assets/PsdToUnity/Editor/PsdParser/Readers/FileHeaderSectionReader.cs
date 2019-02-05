@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,40 +18,42 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers
 {
-    class FileHeaderSectionReader : ValueReader<FileHeaderSection>
+    internal class FileHeaderSectionReader : ValueReader<FileHeaderSection>
     {
         public FileHeaderSectionReader(PsdReader reader)
             : base(reader, false, null)
         {
-            
         }
 
         public static FileHeaderSection Read(PsdReader reader)
         {
-            FileHeaderSectionReader instance = new FileHeaderSectionReader(reader);
+            var instance = new FileHeaderSectionReader(reader);
             return instance.Value;
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out FileHeaderSection value)
         {
             value = new FileHeaderSection();
-           
+
             value.NumberOfChannels = reader.ReadInt16();
             value.Height = reader.ReadInt32();
             value.Width = reader.ReadInt32();
             value.Depth = reader.ReadInt16();
             value.ColorMode = reader.ReadColorMode();
 
-            if (value.Depth != 8)
-            {
-                throw new NotSupportedException("only support 8 Bit Channel");
-            }
+            if (value.Depth != 8) throw new NotSupportedException("only support 8 Bit Channel");
         }
     }
 }

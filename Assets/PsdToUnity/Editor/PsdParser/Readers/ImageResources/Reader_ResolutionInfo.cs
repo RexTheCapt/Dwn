@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,22 +18,24 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+using Assets.PsdToUnity.Editor.PsdParser;
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.ImageResources
 {
     [ResourceID("1005", DisplayName = "Resolution")]
-    class Reader_ResolutionInfo : ResourceReaderBase
+    internal class Reader_ResolutionInfo : ResourceReaderBase
     {
         public Reader_ResolutionInfo(PsdReader reader, long length)
             : base(reader, length)
         {
-            
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out IProperties value)
         {
-            Properties props = new Properties(6);
+            var props = new Properties(6);
 
             props["HorizontalRes"] = reader.ReadInt16();
             props["HorizontalResUnit"] = reader.ReadInt32();

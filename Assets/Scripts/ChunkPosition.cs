@@ -4,14 +4,17 @@ using UnityEngine;
 
 #endregion
 
-public class ChunkPosition : MonoBehaviour
+namespace Assets.Scripts
 {
-    private float modifier = 16;
-
-    public Vector2 Position;
-
-    public Vector2 ActualPosition
+    public class ChunkPosition : MonoBehaviour
     {
-        get { return new Vector2(Position.x * modifier, Position.y * modifier); }
+        private float modifier = 16;
+
+        public Vector2 Position;
+
+        public Vector2 ActualPosition
+        {
+            get { return new Vector2(Position.x * modifier, Position.y * modifier); }
+        }
     }
 }

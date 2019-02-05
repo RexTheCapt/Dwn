@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,16 +18,18 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+using Assets.PsdToUnity.Editor.PsdParser;
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class GlobalLayerMaskInfoReader : ValueReader<object>
+    internal class GlobalLayerMaskInfoReader : ValueReader<object>
     {
         public GlobalLayerMaskInfoReader(PsdReader reader)
             : base(reader, true, null)
         {
-            
         }
 
         protected override long OnLengthGet(PsdReader reader)

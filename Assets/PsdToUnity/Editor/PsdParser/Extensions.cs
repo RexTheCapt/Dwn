@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,10 +18,16 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.Collections.Generic;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
@@ -28,20 +35,16 @@ namespace SubjectNerd.PsdImporter.PsdParser
     {
         public static byte[] MergeChannels(this IImageSource imageSource)
         {
-            IChannel[] channels = imageSource.Channels;
+            var channels = imageSource.Channels;
 
-            int length = channels.Length;
-            int num2 = channels[0].Data.Length;
+            var length = channels.Length;
+            var num2 = channels[0].Data.Length;
 
-            byte[] buffer = new byte[(imageSource.Width * imageSource.Height) * length];
-            int num3 = 0;
-            for (int i = 0; i < num2; i++)
-            {
-                for (int j = channels.Length - 1; j >= 0; j--)
-                {
-                    buffer[num3++] = channels[j].Data[i];
-                }
-            }
+            var buffer = new byte[imageSource.Width * imageSource.Height * length];
+            var num3 = 0;
+            for (var i = 0; i < num2; i++)
+            for (var j = channels.Length - 1; j >= 0; j--)
+                buffer[num3++] = channels[j].Data[i];
             return buffer;
         }
 
@@ -59,10 +62,7 @@ namespace SubjectNerd.PsdImporter.PsdParser
 
                 yield return item;
 
-                foreach (var child in item.Descendants(filter))
-                {
-                    yield return child;
-                }
+                foreach (var child in item.Descendants(filter)) yield return child;
             }
         }
 
@@ -71,12 +71,8 @@ namespace SubjectNerd.PsdImporter.PsdParser
             yield return layer;
 
             foreach (var item in layer.Childs)
-            {
-                foreach (var child in item.Descendants())
-                {
-                    yield return child;
-                }
-            }
+            foreach (var child in item.Descendants())
+                yield return child;
         }
     }
 }

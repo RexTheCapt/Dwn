@@ -1,6 +1,13 @@
-﻿#pragma warning disable 0219 // variable assigned but not used.
+﻿#region usings
+
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
+
+#pragma warning disable 0219 // variable assigned but not used.
 
 #region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -19,16 +26,16 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers
 {
-    class ImageResourcesSectionReader : LazyProperties
+    internal class ImageResourcesSectionReader : LazyProperties
     {
         public ImageResourcesSectionReader(PsdReader reader)
             : base(reader, null)
         {
-
         }
 
         protected override long OnLengthGet(PsdReader reader)
@@ -38,19 +45,19 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers
 
         protected override void ReadValue(PsdReader reader, object userData, out IProperties value)
         {
-            Properties props = new Properties();
+            var props = new Properties();
 
-            while(reader.Position < this.EndPosition)
+            while (reader.Position < EndPosition)
             {
                 reader.ValidateSignature();
 
-                string resourceID = reader.ReadInt16().ToString();
-                string name = reader.ReadPascalString(2);
+                var resourceID = reader.ReadInt16().ToString();
+                var name = reader.ReadPascalString(2);
                 long length = reader.ReadInt32();
-                length += (length % 2);
+                length += length % 2;
 
-                ResourceReaderBase resourceReader = ReaderCollector.CreateReader(resourceID, reader, length);
-                string resourceName = ReaderCollector.GetDisplayName(resourceID);
+                var resourceReader = ReaderCollector.CreateReader(resourceID, reader, length);
+                var resourceName = ReaderCollector.GetDisplayName(resourceID);
 
                 props[resourceName] = resourceReader;
             }

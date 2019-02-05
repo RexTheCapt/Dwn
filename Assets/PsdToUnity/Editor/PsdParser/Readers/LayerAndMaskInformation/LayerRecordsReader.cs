@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,27 +18,33 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+#endregion
+
+#region usings
+
+using Assets.PsdToUnity.Editor.PsdParser;
+
 #endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class LayerRecordsReader : ValueReader<LayerRecords>
+    internal class LayerRecordsReader : ValueReader<LayerRecords>
     {
         private LayerRecordsReader(PsdReader reader)
             : base(reader, false, null)
         {
-            
         }
 
         public static LayerRecords Read(PsdReader reader)
         {
-            LayerRecordsReader instance = new LayerRecordsReader(reader);
+            var instance = new LayerRecordsReader(reader);
             return instance.Value;
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out LayerRecords value)
         {
-            LayerRecords records = new LayerRecords();
+            var records = new LayerRecords();
 
             records.Top = reader.ReadInt32();
             records.Left = reader.ReadInt32();
@@ -49,7 +56,7 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 
             records.ChannelCount = channelCount;
 
-            for (int i = 0; i < channelCount; i++)
+            for (var i = 0; i < channelCount; i++)
             {
                 records.Channels[i].Type = reader.ReadChannelType();
                 records.Channels[i].Size = reader.ReadLength();

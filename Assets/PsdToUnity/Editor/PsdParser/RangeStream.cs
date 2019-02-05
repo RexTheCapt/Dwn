@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,18 +18,23 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.IO;
 
+#endregion
+
 namespace SubjectNerd.PsdImporter.PsdParser
 {
-    class RangeStream : Stream
+    internal class RangeStream : Stream
     {
-        private readonly Stream stream;
-        private readonly long position;
         private readonly long length;
+        private readonly long position;
+        private readonly Stream stream;
 
         public RangeStream(Stream stream, long position, long length)
         {
@@ -52,39 +58,33 @@ namespace SubjectNerd.PsdImporter.PsdParser
             get { return false; }
         }
 
+        public override long Length
+        {
+            get { return length; }
+        }
+
+        public override long Position
+        {
+            get { return stream.Position - position; }
+            set { stream.Position = position + value; }
+        }
+
         public override void Flush()
         {
             //this.stream.Flush();
         }
 
-        public override long Length
-        {
-            get { return this.length; }
-        }
-
-        public override long Position
-        {
-            get
-            {
-                return this.stream.Position - this.position;
-            }
-            set
-            {
-                this.stream.Position = this.position + value;
-            }
-        }
-
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return this.stream.Read(buffer, offset, count);
+            return stream.Read(buffer, offset, count);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
             if (origin == SeekOrigin.Current)
-                return this.stream.Seek(offset, origin) - this.position;
+                return stream.Seek(offset, origin) - position;
 
-            return this.stream.Seek(this.position + offset, origin) - this.position;
+            return stream.Seek(position + offset, origin) - position;
         }
 
         public override void SetLength(long value)

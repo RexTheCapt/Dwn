@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,34 +18,43 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System.Linq;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class DocumentResourceReader : LazyProperties
+    internal class DocumentResourceReader : LazyProperties
     {
-        private static string[] doubleTypeKeys = { "LMsk", "Lr16", "Lr32", "Layr", "Mt16", "Mt32", "Mtrn", "Alph", "FMsk", "lnk2", "FEid", "FXid", "PxSD", "lnkE", "extd", };
+        private static readonly string[] doubleTypeKeys =
+        {
+            "LMsk", "Lr16", "Lr32", "Layr", "Mt16", "Mt32", "Mtrn", "Alph", "FMsk", "lnk2", "FEid", "FXid", "PxSD",
+            "lnkE", "extd"
+        };
 
         public DocumentResourceReader(PsdReader reader, long length)
             : base(reader, length, null)
         {
-
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out IProperties value)
         {
-            Properties props = new Properties();
+            var props = new Properties();
 
-            while (reader.Position < this.EndPosition)
+            while (reader.Position < EndPosition)
             {
                 reader.ValidateSignature(true);
-                string resourceID = reader.ReadType();
-                long length = this.ReadLength(reader, resourceID);
+                var resourceID = reader.ReadType();
+                var length = ReadLength(reader, resourceID);
 
-                ResourceReaderBase resourceReader = ReaderCollector.CreateReader(resourceID, reader, length);
-                string resourceName = ReaderCollector.GetDisplayName(resourceID);
+                var resourceReader = ReaderCollector.CreateReader(resourceID, reader, length);
+                var resourceName = ReaderCollector.GetDisplayName(resourceID);
 
                 props[resourceName] = resourceReader;
             }
@@ -56,15 +66,11 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
         {
             long length = 0;
             if (doubleTypeKeys.Contains(resourceID) && reader.Version == 2)
-            {
                 length = reader.ReadInt64();
-            }
             else
-            {
                 length = reader.ReadInt32();
-            }
 
-            return (length + 3) & (~3);
+            return (length + 3) & ~3;
         }
     }
 }

@@ -1,17 +1,28 @@
 #if !NO_UNITY
+
+#region usings
+
 using System;
 using System.Collections.Generic;
+using SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters;
 using UnityEngine;
 
-namespace SubjectNerd.PsdImporter.FullSerializer {
-    partial class fsConverterRegistrar {
-        public static Internal.DirectConverters.LayerMask_DirectConverter Register_LayerMask_DirectConverter;
+#endregion
+
+namespace SubjectNerd.PsdImporter.FullSerializer
+{
+    partial class FsConverterRegistrar
+    {
+        public static LayerMask_DirectConverter Register_LayerMask_DirectConverter;
     }
 }
 
-namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters {
-    public class LayerMask_DirectConverter : fsDirectConverter<LayerMask> {
-        protected override fsResult DoSerialize(LayerMask model, Dictionary<string, fsData> serialized) {
+namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters
+{
+    public class LayerMask_DirectConverter : fsDirectConverter<LayerMask>
+    {
+        protected override fsResult DoSerialize(LayerMask model, Dictionary<string, fsData> serialized)
+        {
             var result = fsResult.Success;
 
             result += SerializeMember(serialized, null, "value", model.value);
@@ -19,7 +30,8 @@ namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters {
             return result;
         }
 
-        protected override fsResult DoDeserialize(Dictionary<string, fsData> data, ref LayerMask model) {
+        protected override fsResult DoDeserialize(Dictionary<string, fsData> data, ref LayerMask model)
+        {
             var result = fsResult.Success;
 
             var t0 = model.value;
@@ -29,7 +41,8 @@ namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters {
             return result;
         }
 
-        public override object CreateInstance(fsData data, Type storageType) {
+        public override object CreateInstance(fsData data, Type storageType)
+        {
             return new LayerMask();
         }
     }

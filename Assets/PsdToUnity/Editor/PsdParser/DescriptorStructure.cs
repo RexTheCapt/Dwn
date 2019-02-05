@@ -2,6 +2,7 @@
 #pragma warning disable 0414 // variable assigned but never used.
 
 #region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -20,45 +21,47 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
+using Assets.PsdToUnity.Editor.PsdParser;
 using SubjectNerd.PsdImporter.PsdParser.Structures;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
-	class DescriptorStructure : Properties
+    internal class DescriptorStructure : Properties
     {
         private readonly int version;
 
         public DescriptorStructure(PsdReader reader)
             : this(reader, true)
         {
-
         }
 
         public DescriptorStructure(PsdReader reader, bool hasVersion)
         {
-            if (hasVersion == true)
-            {
-                this.version = reader.ReadInt32();
-            }
+            if (hasVersion) version = reader.ReadInt32();
 
-            this.Add("Name", reader.ReadString());
-            this.Add("ClassID", reader.ReadKey());
+            Add("Name", reader.ReadString());
+            Add("ClassID", reader.ReadKey());
 
-            int count = reader.ReadInt32();
-            for (int i = 0; i < count; i++)
+            var count = reader.ReadInt32();
+            for (var i = 0; i < count; i++)
             {
-                string key = reader.ReadKey();
-                string osType = reader.ReadType();
+                var key = reader.ReadKey();
+                var osType = reader.ReadType();
                 if (key == "EngineData")
                 {
-                    this.Add(key.Trim(), new StructureEngineData(reader));
+                    Add(key.Trim(), new StructureEngineData(reader));
                 }
                 else
                 {
-                    object value = StructureReader.Read(osType, reader);
-                    this.Add(key.Trim(), value);
+                    var value = StructureReader.Read(osType, reader);
+                    Add(key.Trim(), value);
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,21 +18,26 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.Collections.Generic;
 
+#endregion
+
 namespace SubjectNerd.PsdImporter.PsdParser
 {
-    static class PsdUtility
+    internal static class PsdUtility
     {
         public static byte[] DecodeRLE(byte[] source)
         {
-            List<byte> dest = new List<byte>();
+            var dest = new List<byte>();
             byte runLength;
 
-            for (int i = 1; i < source.Length; i += 2)
+            for (var i = 1; i < source.Length; i += 2)
             {
                 runLength = source[i - 1];
 
@@ -41,67 +47,55 @@ namespace SubjectNerd.PsdImporter.PsdParser
                     runLength--;
                 }
             }
+
             return dest.ToArray();
         }
 
         public static void DecodeRLE(byte[] src, byte[] dst, int packedLength, int unpackedLength)
         {
-            int index = 0;
-            int num2 = 0;
-            int num3 = 0;
+            var index = 0;
+            var num2 = 0;
+            var num3 = 0;
             byte num4 = 0;
-            int num5 = unpackedLength;
-            int num6 = packedLength;
-            while ((num5 > 0) && (num6 > 0))
+            var num5 = unpackedLength;
+            var num6 = packedLength;
+            while (num5 > 0 && num6 > 0)
             {
                 num3 = src[index++];
                 num6--;
                 if (num3 != 0x80)
                 {
-                    if (num3 > 0x80)
-                    {
-                        num3 -= 0x100;
-                    }
+                    if (num3 > 0x80) num3 -= 0x100;
                     if (num3 < 0)
                     {
                         num3 = 1 - num3;
-                        if (num6 == 0)
-                        {
-                            throw new Exception("Input buffer exhausted in replicate");
-                        }
+                        if (num6 == 0) throw new Exception("Input buffer exhausted in replicate");
                         if (num3 > num5)
-                        {
-                            throw new Exception(string.Format("Overrun in packbits replicate of {0} chars", num3 - num5));
-                        }
+                            throw new Exception(
+                                string.Format("Overrun in packbits replicate of {0} chars", num3 - num5));
                         num4 = src[index];
                         while (num3 > 0)
                         {
-                            if (num5 == 0)
-                            {
-                                break;
-                            }
+                            if (num5 == 0) break;
                             dst[num2++] = num4;
                             num5--;
                             num3--;
                         }
+
                         if (num5 > 0)
                         {
                             index++;
                             num6--;
                         }
+
                         continue;
                     }
+
                     num3++;
                     while (num3 > 0)
                     {
-                        if (num6 == 0)
-                        {
-                            throw new Exception("Input buffer exhausted in copy");
-                        }
-                        if (num5 == 0)
-                        {
-                            throw new Exception("Output buffer exhausted in copy");
-                        }
+                        if (num6 == 0) throw new Exception("Input buffer exhausted in copy");
+                        if (num5 == 0) throw new Exception("Output buffer exhausted in copy");
                         dst[num2++] = src[index++];
                         num5--;
                         num6--;
@@ -109,13 +103,10 @@ namespace SubjectNerd.PsdImporter.PsdParser
                     }
                 }
             }
+
             if (num5 > 0)
-            {
                 for (num3 = 0; num3 < num6; num3++)
-                {
                     dst[num2++] = 0;
-                }
-            }
         }
 
         public static BlendMode ToBlendMode(string text)
@@ -179,6 +170,7 @@ namespace SubjectNerd.PsdImporter.PsdParser
                 case "lum":
                     return BlendMode.Luminosity;
             }
+
             return BlendMode.Normal;
         }
 
@@ -212,12 +204,13 @@ namespace SubjectNerd.PsdImporter.PsdParser
             switch (depth)
             {
                 case 1:
-                    return width;//NOT Sure
+                    return width; //NOT Sure
                 case 8:
                     return width;
                 case 16:
                     return width * 2;
             }
+
             throw new NotSupportedException();
         }
     }

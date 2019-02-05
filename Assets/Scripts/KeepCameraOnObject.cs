@@ -1,18 +1,23 @@
 ﻿#region usings
 
+using JetBrains.Annotations;
 using UnityEngine;
 
 #endregion
 
-public class KeepCameraOnObject : MonoBehaviour
+namespace Assets.Scripts
 {
-    public Camera camera;
-
-    void Update()
+    public class KeepCameraOnObject : MonoBehaviour
     {
-        Vector3 pos = transform.position;
-        pos.z = -100;
+        public Camera Camera;
 
-        camera.gameObject.transform.position = pos;
+        [UsedImplicitly]
+        void Update()
+        {
+            Vector3 pos = transform.position;
+            pos.z = -100;
+
+            Camera.gameObject.transform.position = pos;
+        }
     }
 }

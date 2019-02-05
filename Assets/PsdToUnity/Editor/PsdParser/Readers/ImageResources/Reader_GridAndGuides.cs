@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,26 +18,31 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System.Collections.Generic;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.ImageResources
 {
     [ResourceID("1032", DisplayName = "GridAndGuides")]
-    class Reader_GridAndGuides : ResourceReaderBase
+    internal class Reader_GridAndGuides : ResourceReaderBase
     {
         public Reader_GridAndGuides(PsdReader reader, long length)
             : base(reader, length)
         {
-
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out IProperties value)
         {
-            Properties props = new Properties();
+            var props = new Properties();
 
-            int version = reader.ReadInt32();
+            var version = reader.ReadInt32();
 
             if (version != 1)
                 throw new InvalidFormatException();
@@ -44,15 +50,15 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.ImageResources
             props["HorizontalGrid"] = reader.ReadInt32();
             props["VerticalGrid"] = reader.ReadInt32();
 
-            int guideCount = reader.ReadInt32();
+            var guideCount = reader.ReadInt32();
 
-            List<int> hg = new List<int>();
-            List<int> vg = new List<int>();
+            var hg = new List<int>();
+            var vg = new List<int>();
 
-            for (int i = 0; i < guideCount; i++)
+            for (var i = 0; i < guideCount; i++)
             {
-                int n = reader.ReadInt32();
-                byte t = reader.ReadByte();
+                var n = reader.ReadInt32();
+                var t = reader.ReadByte();
 
                 if (t == 0)
                     vg.Add(n);

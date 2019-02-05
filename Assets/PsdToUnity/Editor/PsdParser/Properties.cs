@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,44 +18,43 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
+#endregion
+
 namespace SubjectNerd.PsdImporter.PsdParser
 {
-    class Properties : IProperties
+    internal class Properties : IProperties
     {
         private readonly Dictionary<string, object> props;
 
         public Properties()
         {
-            this.props = new Dictionary<string, object>();
+            props = new Dictionary<string, object>();
         }
 
         public Properties(int capacity)
         {
-            this.props = new Dictionary<string, object>(capacity);
-        }
-
-        public void Add(string key, object value)
-        {
-            this.props.Add(key, value);
+            props = new Dictionary<string, object>(capacity);
         }
 
         public bool Contains(string property)
         {
-            string[] ss = property.Split(new char[] { '.', '[', ']', }, StringSplitOptions.RemoveEmptyEntries);
+            var ss = property.Split(new[] {'.', '[', ']'}, StringSplitOptions.RemoveEmptyEntries);
 
             object value = this.props;
 
             foreach (var item in ss)
-            {
-                if (value is ArrayList == true)
+                if (value is ArrayList)
                 {
-                    ArrayList arrayList = value as ArrayList;
+                    var arrayList = value as ArrayList;
                     int index;
                     if (int.TryParse(item, out index) == false)
                         return false;
@@ -62,75 +62,69 @@ namespace SubjectNerd.PsdImporter.PsdParser
                         return false;
                     value = arrayList[index];
                 }
-                else if (value is IDictionary<string, object> == true)
+                else if (value is IDictionary<string, object>)
                 {
-                    IDictionary<string, object> props = value as IDictionary<string, object>;
-                    if (props.ContainsKey(item) == false)
-                    {
-                        return false;
-                    }
+                    var props = value as IDictionary<string, object>;
+                    if (props.ContainsKey(item) == false) return false;
 
                     value = props[item];
                 }
 
-            }
-            return true; 
-        }
-
-        private object GetProperty(string property)
-        {
-            string[] ss = property.Split(new char[] { '.', '[', ']', }, StringSplitOptions.RemoveEmptyEntries);
-
-            object value = this.props;
-
-            foreach (var item in ss)
-            {
-                if (value is ArrayList == true)
-                {
-                    ArrayList arrayList = value as ArrayList;
-                    value = arrayList[int.Parse(item)];
-                }
-                else if (value is IDictionary<string, object> == true)
-                {
-                    IDictionary<string, object> props = value as IDictionary<string, object>;
-                    value = props[item];
-                }
-                else if (value is IProperties == true)
-                {
-                    IProperties props = value as IProperties;
-                    value = props[item];
-                }
-            }
-            return value;
+            return true;
         }
 
         public int Count
         {
-            get { return this.props.Count; }
+            get { return props.Count; }
         }
 
         public object this[string property]
         {
-            get
-            {
-                return this.GetProperty(property);
-            }
-            set
-            {
-                this.props[property] = value;
-            }
+            get { return GetProperty(property); }
+            set { props[property] = value; }
+        }
+
+        public void Add(string key, object value)
+        {
+            props.Add(key, value);
+        }
+
+        private object GetProperty(string property)
+        {
+            var ss = property.Split(new[] {'.', '[', ']'}, StringSplitOptions.RemoveEmptyEntries);
+
+            object value = this.props;
+
+            foreach (var item in ss)
+                if (value is ArrayList)
+                {
+                    var arrayList = value as ArrayList;
+                    value = arrayList[int.Parse(item)];
+                }
+                else if (value is IDictionary<string, object>)
+                {
+                    var props = value as IDictionary<string, object>;
+                    value = props[item];
+                }
+                else if (value is IProperties)
+                {
+                    var props = value as IProperties;
+                    value = props[item];
+                }
+
+            return value;
         }
 
         #region IProperties
 
         IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
         {
-            return this.props.GetEnumerator();
+            return props.GetEnumerator();
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.props.GetEnumerator();
+            return props.GetEnumerator();
         }
 
         #endregion

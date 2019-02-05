@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,18 +18,23 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System.Linq;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers
 {
-    class ImageDataSectionReader : LazyValueReader<Channel[]>
+    internal class ImageDataSectionReader : LazyValueReader<Channel[]>
     {
         public ImageDataSectionReader(PsdReader reader, PsdDocument document)
             : base(reader, document)
         {
-
         }
 
         protected override long OnLengthGet(PsdReader reader)
@@ -49,42 +55,37 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers
 
         private static Channel[] ReadValue(PsdReader reader, PsdDocument document)
         {
-            int channelCount = document.FileHeaderSection.NumberOfChannels;
-            int width = document.Width;
-            int height = document.Height;
-            int depth = document.FileHeaderSection.Depth;
+            var channelCount = document.FileHeaderSection.NumberOfChannels;
+            var width = document.Width;
+            var height = document.Height;
+            var depth = document.FileHeaderSection.Depth;
 
-            CompressionType compressionType = (CompressionType)reader.ReadInt16();
+            var compressionType = (CompressionType) reader.ReadInt16();
 
-            ChannelType[] types = new ChannelType[] { ChannelType.Red, ChannelType.Green, ChannelType.Blue, ChannelType.Alpha };
-            Channel[] channels = new Channel[channelCount];
+            ChannelType[] types = {ChannelType.Red, ChannelType.Green, ChannelType.Blue, ChannelType.Alpha};
+            var channels = new Channel[channelCount];
 
-            for (int i = 0; i < channels.Length; i++)
+            for (var i = 0; i < channels.Length; i++)
             {
-                ChannelType type = i < types.Length ? types[i] : ChannelType.Mask;
+                var type = i < types.Length ? types[i] : ChannelType.Mask;
                 channels[i] = new Channel(type, width, height, 0);
                 channels[i].ReadHeader(reader, compressionType);
             }
 
-            for (int i = 0; i < channels.Length; i++)
-            {
-                channels[i].Read(reader, depth, compressionType);
-            }
+            for (var i = 0; i < channels.Length; i++) channels[i].Read(reader, depth, compressionType);
 
             if (channels.Length == 4)
-            {
-                for (int i = 0; i < channels[3].Data.Length; i++)
+                for (var i = 0; i < channels[3].Data.Length; i++)
                 {
-                    float a = channels[3].Data[i] / 255.0f;
+                    var a = channels[3].Data[i] / 255.0f;
 
-                    for (int j = 0; j < 3; j++)
+                    for (var j = 0; j < 3; j++)
                     {
-                        float r = channels[j].Data[i] / 255.0f;
-                        float r1 = (((a + r) - 1f) * 1f) / a;
-                        channels[j].Data[i] = (byte)(r1 * 255.0f);
+                        var r = channels[j].Data[i] / 255.0f;
+                        var r1 = (a + r - 1f) * 1f / a;
+                        channels[j].Data[i] = (byte) (r1 * 255.0f);
                     }
                 }
-            }
 
             return channels.OrderBy(item => item.Type).ToArray();
         }

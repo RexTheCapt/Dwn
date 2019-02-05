@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,34 +18,40 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 #pragma warning disable 0219 // variable assigned but not used.
+
+#region usings
+
 using System.Collections.Generic;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerResources
 {
     [ResourceID("shmd")]
-    class Reader_shmd : ResourceReaderBase
+    internal class Reader_shmd : ResourceReaderBase
     {
         public Reader_shmd(PsdReader reader, long length)
             : base(reader, length)
         {
-
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out IProperties value)
         {
-            Properties props = new Properties();
+            var props = new Properties();
 
-            int count = reader.ReadInt32();
+            var count = reader.ReadInt32();
 
-            List<DescriptorStructure> dss = new List<DescriptorStructure>();
+            var dss = new List<DescriptorStructure>();
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
-                string s = reader.ReadAscii(4);
-                string k = reader.ReadAscii(4);
+                var s = reader.ReadAscii(4);
+                var k = reader.ReadAscii(4);
                 var c = reader.ReadByte();
                 var p = reader.ReadBytes(3);
                 var l = reader.ReadInt32();

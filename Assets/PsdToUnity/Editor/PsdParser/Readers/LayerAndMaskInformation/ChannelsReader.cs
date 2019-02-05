@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,30 +18,35 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System.IO;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class ChannelsReader : LazyValueReader<Channel[]>
+    internal class ChannelsReader : LazyValueReader<Channel[]>
     {
         public ChannelsReader(PsdReader reader, long length, PsdLayer layer)
             : base(reader, length, layer)
         {
-
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out Channel[] value)
         {
-            PsdLayer layer = userData as PsdLayer;
-            LayerRecords records = layer.Records;
+            var layer = userData as PsdLayer;
+            var records = layer.Records;
 
-            using (MemoryStream stream = new MemoryStream(reader.ReadBytes((int)this.Length)))
-            using (PsdReader r = new PsdReader(stream, reader.Resolver, reader.Uri))
+            using (var stream = new MemoryStream(reader.ReadBytes((int) Length)))
+            using (var r = new PsdReader(stream, reader.Resolver, reader.Uri))
             {
                 r.Version = reader.Version;
-                this.ReadValue(r, layer.Depth, records.Channels);
+                ReadValue(r, layer.Depth, records.Channels);
             }
 
             value = records.Channels;
@@ -50,7 +56,7 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
         {
             foreach (var item in channels)
             {
-                CompressionType compressionType = reader.ReadCompressionType();
+                var compressionType = reader.ReadCompressionType();
                 item.ReadHeader(reader, compressionType);
                 item.Read(reader, depth, compressionType);
             }

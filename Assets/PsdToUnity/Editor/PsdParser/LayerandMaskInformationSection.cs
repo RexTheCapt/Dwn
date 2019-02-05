@@ -2,6 +2,7 @@
 #pragma warning disable 0414 // variable assigned but never used.
 
 #region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -20,59 +21,65 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System.Collections.Generic;
 using SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation;
 
+#endregion
+
 namespace SubjectNerd.PsdImporter.PsdParser
 {
-    class LayerAndMaskInformationSection
+    internal class LayerAndMaskInformationSection
     {
-        private readonly LayerInfoReader layerInfo;
-        private readonly GlobalLayerMaskInfoReader globalLayerMask;
         private readonly IProperties documentResources;
+        private readonly GlobalLayerMaskInfoReader globalLayerMask;
+        private readonly LayerInfoReader layerInfo;
 
         private ILinkedLayer[] linkedLayers;
 
-        public LayerAndMaskInformationSection(LayerInfoReader layerInfo, GlobalLayerMaskInfoReader globalLayerMask, IProperties documentResources)
+        public LayerAndMaskInformationSection(LayerInfoReader layerInfo, GlobalLayerMaskInfoReader globalLayerMask,
+            IProperties documentResources)
         {
             this.layerInfo = layerInfo;
             this.globalLayerMask = globalLayerMask;
             this.documentResources = documentResources;
         }
 
-        public PsdLayer[] Layers
+        public IPsdLayer[] Layers
         {
-            get { return this.layerInfo.Value; }
+            get { return layerInfo.Value; }
         }
 
         public ILinkedLayer[] LinkedLayers
         {
             get
             {
-                if (this.linkedLayers == null)
+                if (linkedLayers == null)
                 {
-                    List<ILinkedLayer> list = new List<ILinkedLayer>();
-                    string[] ids = { "lnk2", "lnk3", "lnkD", "lnkE", };
+                    var list = new List<ILinkedLayer>();
+                    string[] ids = {"lnk2", "lnk3", "lnkD", "lnkE"};
 
                     foreach (var item in ids)
-                    {
-                        if (this.documentResources.Contains(item))
+                        if (documentResources.Contains(item))
                         {
-                            var items = this.documentResources.ToValue<ILinkedLayer[]>(item, "Items");
+                            var items = documentResources.ToValue<ILinkedLayer[]>(item, "Items");
                             list.AddRange(items);
                         }
-                    }
-                    this.linkedLayers = list.ToArray();
+
+                    linkedLayers = list.ToArray();
                 }
-                return this.linkedLayers;
+
+                return linkedLayers;
             }
         }
 
         public IProperties Resources
         {
-            get { return this.documentResources; }
+            get { return documentResources; }
         }
     }
 }

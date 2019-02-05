@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,21 +18,27 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+#endregion
+
+#region usings
+
+using Assets.PsdToUnity.Editor.PsdParser;
+
 #endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class LayerExtraRecordsReader : ValueReader<LayerRecords>
+    internal class LayerExtraRecordsReader : ValueReader<LayerRecords>
     {
         private LayerExtraRecordsReader(PsdReader reader, LayerRecords records)
             : base(reader, true, records)
         {
-
         }
 
         public static LayerRecords Read(PsdReader reader, LayerRecords records)
         {
-            LayerExtraRecordsReader instance = new LayerExtraRecordsReader(reader, records);
+            var instance = new LayerExtraRecordsReader(reader, records);
             return instance.Value;
         }
 
@@ -42,11 +49,11 @@ namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 
         protected override void ReadValue(PsdReader reader, object userData, out LayerRecords value)
         {
-            LayerRecords records = userData as LayerRecords;
-            LayerMask mask = LayerMaskReader.Read(reader);
-            LayerBlendingRanges blendingRanges = LayerBlendingRangesReader.Read(reader);
-            string name = reader.ReadPascalString(4);
-            IProperties resources = new LayerResourceReader(reader, this.EndPosition - reader.Position);
+            var records = userData as LayerRecords;
+            var mask = LayerMaskReader.Read(reader);
+            var blendingRanges = LayerBlendingRangesReader.Read(reader);
+            var name = reader.ReadPascalString(4);
+            IProperties resources = new LayerResourceReader(reader, EndPosition - reader.Position);
 
             records.SetExtraRecords(mask, blendingRanges, resources, name);
 

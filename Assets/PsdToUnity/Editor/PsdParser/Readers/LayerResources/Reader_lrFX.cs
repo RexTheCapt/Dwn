@@ -1,6 +1,9 @@
-﻿#pragma warning disable 0219 // variable assigned but not used.
+﻿using Assets.PsdToUnity.Editor.PsdParser;
+
+#pragma warning disable 0219 // variable assigned but not used.
 
 #region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -19,44 +22,44 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerResources
 {
     [ResourceID("lrFX")]
-    class Reader_lrFX : ResourceReaderBase
+    internal class Reader_lrFX : ResourceReaderBase
     {
         public Reader_lrFX(PsdReader reader, long length)
             : base(reader, length)
         {
-
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out IProperties value)
         {
             value = new Properties();
 
-            short version = reader.ReadInt16();
+            var version = reader.ReadInt16();
             int count = reader.ReadInt16();
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
-                string _8bim = reader.ReadAscii(4);
-                string effectType = reader.ReadAscii(4);
-                int size = reader.ReadInt32();
-                long p = reader.Position;
+                var _8bim = reader.ReadAscii(4);
+                var effectType = reader.ReadAscii(4);
+                var size = reader.ReadInt32();
+                var p = reader.Position;
 
                 switch (effectType)
                 {
                     case "dsdw":
-                        {
-                            //ShadowInfo.Parse(reader);
-                        }
+                    {
+                        //ShadowInfo.Parse(reader);
+                    }
                         break;
                     case "sofi":
-                        {
-                            //this.solidFillInfo = SolidFillInfo.Parse(reader);
-                        }
+                    {
+                        //this.solidFillInfo = SolidFillInfo.Parse(reader);
+                    }
                         break;
                 }
 

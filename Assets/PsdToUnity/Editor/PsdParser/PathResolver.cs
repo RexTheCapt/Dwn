@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,31 +18,37 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.Collections.Generic;
 using System.IO;
+using SubjectNerd.PsdImporter.PsdParser;
 
-namespace SubjectNerd.PsdImporter.PsdParser
+#endregion
+
+namespace Assets.PsdToUnity.Editor.PsdParser
 {
     public class PathResolver : PsdResolver
     {
-        private readonly Dictionary<Uri, PsdDocument> uriToDocuments = new Dictionary<Uri, PsdDocument>();
+        private readonly Dictionary<Uri, PsdDocument> _uriToDocuments = new Dictionary<Uri, PsdDocument>();
 
         public override PsdDocument GetDocument(Uri absoluteUri)
         {
-            string filename = absoluteUri.LocalPath;
+            var filename = absoluteUri.LocalPath;
             if (File.Exists(filename) == false)
                 throw new FileNotFoundException(string.Format("{0} 파일을 찾을 수 없습니다.", filename), filename);
 
-            if (uriToDocuments.ContainsKey(absoluteUri) == false)
+            if (_uriToDocuments.ContainsKey(absoluteUri) == false)
             {
-                PsdDocument document = PsdDocument.Create(filename);
-                uriToDocuments.Add(absoluteUri, document);
+                var document = PsdDocument.Create(filename);
+                _uriToDocuments.Add(absoluteUri, document);
             }
 
-            return uriToDocuments[absoluteUri];
+            return _uriToDocuments[absoluteUri];
         }
     }
 }

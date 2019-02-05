@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,40 +18,41 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System.IO;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation
 {
-    class LinkedDocumnetFileHeaderReader : LazyValueReader<FileHeaderSection>
+    internal class LinkedDocumnetFileHeaderReader : LazyValueReader<FileHeaderSection>
     {
         public LinkedDocumnetFileHeaderReader(PsdReader reader, long length)
             : base(reader, length, null)
         {
-
         }
 
         protected override void ReadValue(PsdReader reader, object userData, out FileHeaderSection value)
         {
-            if (this.IsDocument(reader) == true)
-            {
-                using (Stream stream = new RangeStream(reader.Stream, reader.Position, this.Length))
-                using (PsdReader r = new PsdReader(stream, reader.Resolver, reader.Uri))
+            if (IsDocument(reader))
+                using (Stream stream = new RangeStream(reader.Stream, reader.Position, Length))
+                using (var r = new PsdReader(stream, reader.Resolver, reader.Uri))
                 {
                     r.ReadDocumentHeader();
                     value = FileHeaderSectionReader.Read(r);
                 }
-            }
             else
-            {
                 value = new FileHeaderSection();
-            }
         }
 
         private bool IsDocument(PsdReader reader)
         {
-            long position = reader.Position;
+            var position = reader.Position;
             try
             {
                 return reader.ReadType() == "8BPS";

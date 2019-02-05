@@ -22,611 +22,627 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#region usings
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Assets.PsdToUnity.Editor;
+using Assets.PsdToUnity.Editor.PsdParser;
 using SubjectNerd.PsdImporter.PsdParser;
 using SubjectNerd.PsdImporter.Reconstructor;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+#endregion
+
 namespace SubjectNerd.PsdImporter
 {
-	public class PsdImporter
-	{
-		private const string DOC_ROOT = "DOCUMENT_ROOT";
+    public class PsdImporter
+    {
+        private const string DOC_ROOT = "DOCUMENT_ROOT";
 
-		private static string GetPsdFilepath(Object psdFile)
-		{
-			string filepath = AssetDatabase.GetAssetPath(psdFile);
-			if (string.IsNullOrEmpty(filepath))
-				return string.Empty;
-			if (filepath.ToLower().EndsWith(".psd") == false)
-				return string.Empty;
-			return filepath;
-		}
+        private static string GetPsdFilepath(Object psdFile)
+        {
+            var filepath = AssetDatabase.GetAssetPath(psdFile);
+            if (string.IsNullOrEmpty(filepath))
+                return string.Empty;
+            if (filepath.ToLower().EndsWith(".psd") == false)
+                return string.Empty;
+            return filepath;
+        }
 
-		private static IEnumerator ParseLayers(IPsdLayer[] layers, bool doYield,
-			Action<PsdLayer, int[]> onLayer, Action onComplete, int[] parentIndex = null)
-		{
-			// Loop through layers in reverse so they are encountered in same order as Photoshop
-			for (int i = layers.Length - 1; i >= 0; i--)
-			{
-				int[] layerIndex = parentIndex;
-				if (layerIndex == null)
-				{
-					layerIndex = new int[] {i};
-				}
-				else
-				{
-					int lastIndex = layerIndex.Length;
-					Array.Resize(ref layerIndex, lastIndex + 1);
-					layerIndex[lastIndex] = i;
-				}
-				
-				PsdLayer layer = layers[i] as PsdLayer;
-				if (layer == null)
-					continue;
+        private static IEnumerator ParseLayers(IPsdLayer[] layers, bool doYield,
+            Action<PsdLayer, int[]> onLayer, Action onComplete, int[] parentIndex = null)
+        {
+            // Loop through layers in reverse so they are encountered in same order as Photoshop
+            for (var i = layers.Length - 1; i >= 0; i--)
+            {
+                var layerIndex = parentIndex;
+                if (layerIndex == null)
+                {
+                    layerIndex = new[] {i};
+                }
+                else
+                {
+                    var lastIndex = layerIndex.Length;
+                    Array.Resize(ref layerIndex, lastIndex + 1);
+                    layerIndex[lastIndex] = i;
+                }
 
-				if (onLayer != null)
-					onLayer(layer, layerIndex);
+                var layer = layers[i] as PsdLayer;
+                if (layer == null)
+                    continue;
 
-				if (doYield)
-					yield return null;
+                if (onLayer != null)
+                    onLayer(layer, layerIndex);
 
-				if (layer.Childs.Length > 0)
-				{
-					yield return EditorCoroutineRunner.StartCoroutine(
-						ParseLayers(layer.Childs, doYield, onLayer, null, layerIndex)
-					);
-				}
-			}
+                if (doYield)
+                    yield return null;
 
-			if (onComplete != null)
-				onComplete();
-		}
+                if (layer.Childs.Length > 0)
+                    yield return EditorCoroutineRunner.StartCoroutine(
+                        ParseLayers(layer.Childs, doYield, onLayer, null, layerIndex)
+                    );
+            }
 
-		public static void BuildImportLayerData(Object file, ImportUserData importSettings,
-												Action<ImportLayerData, DisplayLayerData> callback)
-		{
-			string filepath = GetPsdFilepath(file);
-			if (string.IsNullOrEmpty(filepath))
-			{
-				if (callback != null)
-					callback(null, null);
-				return;
-			}
-			
-			using (PsdDocument psd = PsdDocument.Create(filepath))
-			{
-				ImportLayerData docImportData = new ImportLayerData()
-				{
-					name = DOC_ROOT,
-					indexId = new int[] {-1},
-					Childs = new List<ImportLayerData>()
-				};
-				DisplayLayerData docDisplayData = new DisplayLayerData()
-				{
-					indexId = new int[] {-1},
-					Childs = new List<DisplayLayerData>()
-				};
+            if (onComplete != null)
+                onComplete();
+        }
 
-				EditorCoroutineRunner.StartCoroutine(
-					ParseLayers(psd.Childs, false,
-					onLayer: (layer, indexId) =>
-					{
-						// Walk down the index id to get the parent layers
-						// and build the full path
-						string fullPath = "";
-						ImportLayerData parentLayer = docImportData;
-						DisplayLayerData parentDisplay = docDisplayData;
-						if (indexId.Length > 1)
-						{
-							for (int idIdx = 0; idIdx < indexId.Length - 1; idIdx++)
-							{
-								int idx = indexId[idIdx];
-								parentLayer = parentLayer.Childs[idx];
-								parentDisplay = parentDisplay.Childs[idx];
+        public static void BuildImportLayerData(Object file, ImportUserData importSettings,
+            Action<ImportLayerData, DisplayLayerData> callback)
+        {
+            var filepath = GetPsdFilepath(file);
+            if (string.IsNullOrEmpty(filepath))
+            {
+                if (callback != null)
+                    callback(null, null);
+                return;
+            }
 
-								if (string.IsNullOrEmpty(fullPath) == false)
-									fullPath += "/";
-								fullPath += parentLayer.name;
-							}
-						}
-						
-						if (string.IsNullOrEmpty(fullPath) == false)
-							fullPath += "/";
-						fullPath += layer.Name;
+            using (var psd = PsdDocument.Create(filepath))
+            {
+                var docImportData = new ImportLayerData
+                {
+                    name = DOC_ROOT,
+                    indexId = new[] {-1},
+                    Childs = new List<ImportLayerData>()
+                };
+                var docDisplayData = new DisplayLayerData
+                {
+                    IndexId = new[] {-1},
+                    Childs = new List<DisplayLayerData>()
+                };
 
-						ImportLayerData layerImportData = new ImportLayerData()
-						{
-							name = layer.Name,
-							path = fullPath,
-							indexId = indexId,
-							import = layer.IsVisible,
-							useDefaults = true,
-							Alignment = importSettings.DefaultAlignment,
-							Pivot = importSettings.DefaultPivot,
-							ScaleFactor = importSettings.ScaleFactor,
-							Childs = new List<ImportLayerData>()
-						};
-						
-						DisplayLayerData layerDisplayData = new DisplayLayerData()
-						{
-							indexId = indexId,
-							isVisible = layer.IsVisible,
-							isGroup = layer.Childs.Length > 0,
-							isOpen = layer.IsFolderOpen
-						};
+                EditorCoroutineRunner.StartCoroutine(
+                    ParseLayers(psd.Childs, false,
+                        (layer, indexId) =>
+                        {
+                            // Walk down the index id to get the parent layers
+                            // and build the full path
+                            var fullPath = "";
+                            var parentLayer = docImportData;
+                            var parentDisplay = docDisplayData;
+                            if (indexId.Length > 1)
+                                for (var idIdx = 0; idIdx < indexId.Length - 1; idIdx++)
+                                {
+                                    var idx = indexId[idIdx];
+                                    parentLayer = parentLayer.Childs[idx];
+                                    parentDisplay = parentDisplay.Childs[idx];
 
-						int layerIdx = indexId[indexId.Length - 1];
-						
-						int maxLayers = layerIdx + 1;
-						while (parentLayer.Childs.Count < maxLayers)
-							parentLayer.Childs.Add(null);
+                                    if (string.IsNullOrEmpty(fullPath) == false)
+                                        fullPath += "/";
+                                    fullPath += parentLayer.name;
+                                }
 
-						parentLayer.Childs[layerIdx] = layerImportData;
+                            if (string.IsNullOrEmpty(fullPath) == false)
+                                fullPath += "/";
+                            fullPath += layer.Name;
 
-						while (parentDisplay.Childs.Count < maxLayers)
-							parentDisplay.Childs.Add(null);
+                            var layerImportData = new ImportLayerData
+                            {
+                                name = layer.Name,
+                                path = fullPath,
+                                indexId = indexId,
+                                import = layer.IsVisible,
+                                useDefaults = true,
+                                Alignment = importSettings.DefaultAlignment,
+                                Pivot = importSettings.DefaultPivot,
+                                ScaleFactor = importSettings.ScaleFactor,
+                                Childs = new List<ImportLayerData>()
+                            };
 
-						parentDisplay.Childs[layerIdx] = layerDisplayData;
-					},
-					onComplete: () =>
-					{
-						if (callback != null)
-							callback(docImportData, docDisplayData);
-					})
-				);
-			}
-		}
+                            var layerDisplayData = new DisplayLayerData
+                            {
+                                IndexId = indexId,
+                                isVisible = layer.IsVisible,
+                                isGroup = layer.Childs.Length > 0,
+                                isOpen = layer.IsFolderOpen
+                            };
 
-		private static PsdLayer GetPsdLayerByIndex(PsdDocument psdDoc, int[] layerIdx)
-		{
-			IPsdLayer target = psdDoc;
-			foreach (int idx in layerIdx)
-			{
-				if (idx < 0 || idx >= target.Childs.Length)
-					return null;
-				target = target.Childs[idx];
-			}
+                            var layerIdx = indexId[indexId.Length - 1];
 
-			PsdLayer layer = target as PsdLayer;
-			return layer;
-		}
+                            var maxLayers = layerIdx + 1;
+                            while (parentLayer.Childs.Count < maxLayers)
+                                parentLayer.Childs.Add(null);
 
-		#region Layer Texture Generation
-		public static Texture2D GetLayerTexture(Object psdFile, int[] layerIdx)
-		{
-			ImportLayerData setting = new ImportLayerData()
-			{
-				Alignment = SpriteAlignment.Center,
-				Pivot = new Vector2(0.5f, 0.5f),
-				ScaleFactor = ScaleFactor.Full,
+                            parentLayer.Childs[layerIdx] = layerImportData;
+
+                            while (parentDisplay.Childs.Count < maxLayers)
+                                parentDisplay.Childs.Add(null);
+
+                            parentDisplay.Childs[layerIdx] = layerDisplayData;
+                        },
+                        () =>
+                        {
+                            if (callback != null)
+                                callback(docImportData, docDisplayData);
+                        })
+                );
+            }
+        }
+
+        private static PsdLayer GetPsdLayerByIndex(PsdDocument psdDoc, int[] layerIdx)
+        {
+            IPsdLayer target = psdDoc;
+            foreach (var idx in layerIdx)
+            {
+                if (idx < 0 || idx >= target.Childs.Length)
+                    return null;
+                target = target.Childs[idx];
+            }
+
+            var layer = target as PsdLayer;
+            return layer;
+        }
+
+        #region Layer Texture Generation
+
+        public static Texture2D GetLayerTexture(Object psdFile, int[] layerIdx)
+        {
+            var setting = new ImportLayerData
+            {
+                Alignment = SpriteAlignment.Center,
+                Pivot = new Vector2(0.5f, 0.5f),
+                ScaleFactor = ScaleFactor.Full,
                 Childs = new List<ImportLayerData>(),
-				import = true,
-				indexId = layerIdx
-			};
-			return GetLayerTexture(psdFile, setting);
-		}
+                import = true,
+                indexId = layerIdx
+            };
+            return GetLayerTexture(psdFile, setting);
+        }
 
-		public static Texture2D GetLayerTexture(Object psdFile, ImportLayerData setting)
-		{
-			string filepath = GetPsdFilepath(psdFile);
-			if (string.IsNullOrEmpty(filepath))
-				return null;
+        public static Texture2D GetLayerTexture(Object psdFile, ImportLayerData setting)
+        {
+            var filepath = GetPsdFilepath(psdFile);
+            if (string.IsNullOrEmpty(filepath))
+                return null;
 
-			Texture2D texture = null;
-			using (PsdDocument psd = PsdDocument.Create(filepath))
-			{
-				var layer = GetPsdLayerByIndex(psd, setting.indexId);
-				texture = GetLayerTexture(psd, layer, setting);
-			}
-			return texture;
-		}
+            Texture2D texture = null;
+            using (var psd = PsdDocument.Create(filepath))
+            {
+                var layer = GetPsdLayerByIndex(psd, setting.indexId);
+                texture = GetLayerTexture(psd, layer, setting);
+            }
 
-		private static Texture2D GetLayerTexture(PsdDocument psdDoc, PsdLayer psdLayer, ImportLayerData setting)
-		{
-			if (psdLayer == null || psdLayer.IsGroup)
-				return null;
+            return texture;
+        }
 
-			Texture2D layerTexture = GetTexture(psdLayer);
-			if (setting.ScaleFactor != ScaleFactor.Full)
-			{
-				int mipMapLevel = setting.ScaleFactor == ScaleFactor.Half ? 1 : 2;
-				layerTexture = ScaleTextureByMipmap(layerTexture, mipMapLevel);
-			}
-			return layerTexture;
-		}
+        private static Texture2D GetLayerTexture(PsdDocument psdDoc, PsdLayer psdLayer, ImportLayerData setting)
+        {
+            if (psdLayer == null || psdLayer.IsGroup)
+                return null;
 
-		private static Texture2D GetTexture(PsdLayer layer)
-		{
-			Texture2D texture = new Texture2D(layer.Width, layer.Height);
-			Color32[] pixels = new Color32[layer.Width * layer.Height];
+            var layerTexture = GetTexture(psdLayer);
+            if (setting.ScaleFactor != ScaleFactor.Full)
+            {
+                var mipMapLevel = setting.ScaleFactor == ScaleFactor.Half ? 1 : 2;
+                layerTexture = ScaleTextureByMipmap(layerTexture, mipMapLevel);
+            }
 
-			Channel red = (from l in layer.Channels where l.Type == ChannelType.Red select l).First();
-			Channel green = (from l in layer.Channels where l.Type == ChannelType.Green select l).First();
-			Channel blue = (from l in layer.Channels where l.Type == ChannelType.Blue select l).First();
-			Channel alpha = (from l in layer.Channels where l.Type == ChannelType.Alpha select l).FirstOrDefault();
-			Channel mask = (from l in layer.Channels where l.Type == ChannelType.Mask select l).FirstOrDefault();
+            return layerTexture;
+        }
 
-			for (int i = 0; i < pixels.Length; i++)
-			{
-				byte r = red.Data[i];
-				byte g = green.Data[i];
-				byte b = blue.Data[i];
-				byte a = 255;
+        private static Texture2D GetTexture(PsdLayer layer)
+        {
+            var texture = new Texture2D(layer.Width, layer.Height);
+            var pixels = new Color32[layer.Width * layer.Height];
 
-				if (alpha != null)
-					a = alpha.Data[i];
-				if (mask != null)
-					a *= mask.Data[i];
+            var red = (from l in layer.Channels where l.Type == ChannelType.Red select l).First();
+            var green = (from l in layer.Channels where l.Type == ChannelType.Green select l).First();
+            var blue = (from l in layer.Channels where l.Type == ChannelType.Blue select l).First();
+            var alpha = (from l in layer.Channels where l.Type == ChannelType.Alpha select l).FirstOrDefault();
+            var mask = (from l in layer.Channels where l.Type == ChannelType.Mask select l).FirstOrDefault();
 
-				int mod = i % texture.width;
-				int n = ((texture.width - mod - 1) + i) - mod;
-				pixels[pixels.Length - n - 1] = new Color32(r, g, b, a);
-			}
+            for (var i = 0; i < pixels.Length; i++)
+            {
+                var r = red.Data[i];
+                var g = green.Data[i];
+                var b = blue.Data[i];
+                byte a = 255;
 
-			texture.SetPixels32(pixels);
-			texture.Apply();
-			return texture;
-		}
+                if (alpha != null)
+                    a = alpha.Data[i];
+                if (mask != null)
+                    a *= mask.Data[i];
 
-		private static Texture2D ScaleTextureByMipmap(Texture2D tex, int mipLevel)
-		{
-			if (mipLevel < 0 || mipLevel > 2)
-				return null;
-			int width = Mathf.RoundToInt(tex.width / (mipLevel * 2));
-			int height = Mathf.RoundToInt(tex.height / (mipLevel * 2));
+                var mod = i % texture.width;
+                var n = texture.width - mod - 1 + i - mod;
+                pixels[pixels.Length - n - 1] = new Color32(r, g, b, a);
+            }
 
-			// Scaling down by abusing mip maps
-			Texture2D resized = new Texture2D(width, height);
-			resized.SetPixels32(tex.GetPixels32(mipLevel));
-			resized.Apply();
-			return resized;
-		}
-		#endregion
+            texture.SetPixels32(pixels);
+            texture.Apply();
+            return texture;
+        }
 
-		#region Layer Asset Import
-		public static void ImportLayersUI(Object psdFile, ImportUserData importSettings, List<int[]> layerIndices)
-		{
-			int total = layerIndices.Count;
-			EditorCoroutineRunner.StartCoroutineWithUI(
-				ImportCoroutine(psdFile, importSettings, layerIndices, true,
-					layerCallback: (current, layer) =>
-					{
-						string text = string.Format("[{0}/{1}] Layer: {2}", current, total, layer.name);
-						float percent = (float)current/total;
-						EditorCoroutineRunner.UpdateUI(text, percent);
-					}
-				), "Importing PSD Layers", true
-			);
-		}
+        private static Texture2D ScaleTextureByMipmap(Texture2D tex, int mipLevel)
+        {
+            if (mipLevel < 0 || mipLevel > 2)
+                return null;
+            var width = Mathf.RoundToInt(tex.width / (mipLevel * 2));
+            var height = Mathf.RoundToInt(tex.height / (mipLevel * 2));
 
-		public static void ImportLayers(Object psdFile, ImportUserData importSettings, List<int[]> layerIndices, Action<List<Sprite>> callback = null)
-		{
-			EditorCoroutineRunner.StartCoroutine(
-				ImportCoroutine(psdFile, importSettings, layerIndices, false, completeCallback: callback)
-			);
-		}
+            // Scaling down by abusing mip maps
+            var resized = new Texture2D(width, height);
+            resized.SetPixels32(tex.GetPixels32(mipLevel));
+            resized.Apply();
+            return resized;
+        }
 
-		private static IEnumerator ImportCoroutine(Object psdFile, ImportUserData importSettings,
-													List<int[]> layerIndices, bool doYield = false,
-													Action<int, ImportLayerData> layerCallback = null,
-													Action<List<Sprite>> completeCallback = null)
-		{
-			string filepath = GetPsdFilepath(psdFile);
-			if (string.IsNullOrEmpty(filepath))
-			{
-				if (completeCallback != null)
-					completeCallback(null);
-				yield break;
-			}
+        #endregion
 
-			// No target directory set, use PSD file directory
-			if (string.IsNullOrEmpty(importSettings.TargetDirectory))
-				importSettings.TargetDirectory = filepath.Substring(0, filepath.LastIndexOf("/"));
+        #region Layer Asset Import
 
-			// Get the texture importer for the PSD
-			TextureImporter psdUnitySettings = (TextureImporter)AssetImporter.GetAtPath(filepath);
-			TextureImporterSettings psdUnityImport = new TextureImporterSettings();
-			psdUnitySettings.ReadTextureSettings(psdUnityImport);
+        public static void ImportLayersUI(Object psdFile, ImportUserData importSettings, List<int[]> layerIndices)
+        {
+            var total = layerIndices.Count;
+            EditorCoroutineRunner.StartCoroutineWithUI(
+                ImportCoroutine(psdFile, importSettings, layerIndices, true,
+                    (current, layer) =>
+                    {
+                        var text = string.Format("[{0}/{1}] Layer: {2}", current, total, layer.name);
+                        var percent = (float) current / total;
+                        EditorCoroutineRunner.UpdateUI(text, percent);
+                    }
+                ), "Importing PSD Layers", true
+            );
+        }
 
-			int importCurrent = 0;
+        public static void ImportLayers(Object psdFile, ImportUserData importSettings, List<int[]> layerIndices,
+            Action<List<Sprite>> callback = null)
+        {
+            EditorCoroutineRunner.StartCoroutine(
+                ImportCoroutine(psdFile, importSettings, layerIndices, false, completeCallback: callback)
+            );
+        }
 
-			List<Sprite> sprites = new List<Sprite>();
-			using (PsdDocument psd = PsdDocument.Create(filepath))
-			{
-				foreach (int[] layerIdx in layerIndices)
-				{
-					ImportLayerData layerSettings = importSettings.GetLayerData(layerIdx);
-					if (layerSettings == null)
-						continue;
+        private static IEnumerator ImportCoroutine(Object psdFile, ImportUserData importSettings,
+            List<int[]> layerIndices, bool doYield = false,
+            Action<int, ImportLayerData> layerCallback = null,
+            Action<List<Sprite>> completeCallback = null)
+        {
+            var filepath = GetPsdFilepath(psdFile);
+            if (string.IsNullOrEmpty(filepath))
+            {
+                if (completeCallback != null)
+                    completeCallback(null);
+                yield break;
+            }
 
-					if (layerCallback != null)
-						layerCallback(importCurrent, layerSettings);
+            // No target directory set, use PSD file directory
+            if (string.IsNullOrEmpty(importSettings.TargetDirectory))
+                importSettings.TargetDirectory = filepath.Substring(0, filepath.LastIndexOf("/"));
 
-					var sprite = ImportLayer(psd, importSettings, layerSettings, psdUnityImport);
-					sprites.Add(sprite);
-					importCurrent++;
+            // Get the texture importer for the PSD
+            var psdUnitySettings = (TextureImporter) AssetImporter.GetAtPath(filepath);
+            var psdUnityImport = new TextureImporterSettings();
+            psdUnitySettings.ReadTextureSettings(psdUnityImport);
 
-					if (doYield)
-						yield return null;
-				}
-			}
-			if (completeCallback != null)
-				completeCallback(sprites);
-		}
+            var importCurrent = 0;
 
-		private static Sprite ImportLayer(PsdDocument psdDoc, ImportUserData importSettings, ImportLayerData layerSettings, TextureImporterSettings psdUnityImport)
-		{
-			if (layerSettings == null)
-				return null;
+            var sprites = new List<Sprite>();
+            using (var psd = PsdDocument.Create(filepath))
+            {
+                foreach (var layerIdx in layerIndices)
+                {
+                    var layerSettings = importSettings.GetLayerData(layerIdx);
+                    if (layerSettings == null)
+                        continue;
 
-			PsdLayer psdLayer = GetPsdLayerByIndex(psdDoc, layerSettings.indexId);
-			if (psdLayer.IsGroup)
-				return null;
-			
-			// Generate the texture
-			Texture2D layerTexture = GetLayerTexture(psdDoc, psdLayer, layerSettings);
-			if (layerTexture == null)
-				return null;
+                    if (layerCallback != null)
+                        layerCallback(importCurrent, layerSettings);
 
-			// Save the texture as an asset
-			Sprite layerSprite = SaveAsset(psdLayer, psdUnityImport, layerTexture, importSettings, layerSettings);
-			return layerSprite;
-		}
+                    var sprite = ImportLayer(psd, importSettings, layerSettings, psdUnityImport);
+                    sprites.Add(sprite);
+                    importCurrent++;
 
-		private static Sprite SaveAsset(PsdLayer psdLayer, TextureImporterSettings psdUnityImport,
-									Texture2D texture, ImportUserData importSettings, ImportLayerData layerSettings)
-		{
-			// Generate the file path for this layer
-			string fileDir;
-			string filepath = GetFilePath(psdLayer, importSettings, out fileDir);
+                    if (doYield)
+                        yield return null;
+                }
+            }
 
-			// Create the folder if non existent
-			if (AssetDatabase.IsValidFolder(fileDir) == false)
-			{
-				var subPaths = fileDir.Split('/');
-				string parentFolder = subPaths[0];
-				foreach (string folder in subPaths.Skip(1))
-				{
-					string targetFolder = string.Format("{0}/{1}", parentFolder, folder);
-					if (AssetDatabase.IsValidFolder(targetFolder) == false)
-						AssetDatabase.CreateFolder(parentFolder, folder);
-					parentFolder = targetFolder;
-				}
-			}
+            if (completeCallback != null)
+                completeCallback(sprites);
+        }
 
-			// Write out the texture contents into the file
-			AssetDatabase.CreateAsset(texture, filepath);
-			byte[] buf = texture.EncodeToPNG();
-			File.WriteAllBytes(filepath, buf);
+        private static Sprite ImportLayer(PsdDocument psdDoc, ImportUserData importSettings,
+            ImportLayerData layerSettings, TextureImporterSettings psdUnityImport)
+        {
+            if (layerSettings == null)
+                return null;
 
-			AssetDatabase.ImportAsset(filepath, ImportAssetOptions.ForceUpdate);
-			Texture2D textureObj = AssetDatabase.LoadAssetAtPath<Texture2D>(filepath);
+            var psdLayer = GetPsdLayerByIndex(psdDoc, layerSettings.indexId);
+            if (psdLayer.IsGroup)
+                return null;
 
-			// Get the texture importer for the asset
-			TextureImporter textureImporter = (TextureImporter)AssetImporter.GetAtPath(filepath);
-			// Read out the texture import settings so settings can be changed
-			TextureImporterSettings texSetting = new TextureImporterSettings();
-			textureImporter.ReadTextureSettings(texSetting);
+            // Generate the texture
+            var layerTexture = GetLayerTexture(psdDoc, psdLayer, layerSettings);
+            if (layerTexture == null)
+                return null;
 
-			float finalPPU = psdUnityImport.spritePixelsPerUnit;
-			switch (layerSettings.ScaleFactor)
-			{
-				case ScaleFactor.Half:
-					finalPPU /= 2;
-					break;
-				case ScaleFactor.Quarter:
-					finalPPU /= 4;
-					break;
-			}
+            // Save the texture as an asset
+            var layerSprite = SaveAsset(psdLayer, psdUnityImport, layerTexture, importSettings, layerSettings);
+            return layerSprite;
+        }
 
-			// Change settings
-			texSetting.spriteAlignment = (int)layerSettings.Alignment;
-			texSetting.spritePivot = layerSettings.Pivot;
-			texSetting.spritePixelsPerUnit = finalPPU;
-			texSetting.filterMode = psdUnityImport.filterMode;
-			texSetting.wrapMode = psdUnityImport.wrapMode;
-			texSetting.textureType = TextureImporterType.Sprite;
-			texSetting.spriteMode = (int)SpriteImportMode.Single;
-			texSetting.mipmapEnabled = false;
-			texSetting.alphaIsTransparency = true;
-			texSetting.npotScale = TextureImporterNPOTScale.None;
-			// Set the rest of the texture settings
-			textureImporter.spritePackingTag = importSettings.PackingTag;
-			// Write in the texture import settings
-			textureImporter.SetTextureSettings(texSetting);
+        private static Sprite SaveAsset(PsdLayer psdLayer, TextureImporterSettings psdUnityImport,
+            Texture2D texture, ImportUserData importSettings, ImportLayerData layerSettings)
+        {
+            // Generate the file path for this layer
+            string fileDir;
+            var filepath = GetFilePath(psdLayer, importSettings, out fileDir);
 
-			EditorUtility.SetDirty(textureObj);
-			AssetDatabase.WriteImportSettingsIfDirty(filepath);
-			AssetDatabase.ImportAsset(filepath, ImportAssetOptions.ForceUpdate);
-			return (Sprite)AssetDatabase.LoadAssetAtPath(filepath, typeof(Sprite));
-		}
+            // Create the folder if non existent
+            if (AssetDatabase.IsValidFolder(fileDir) == false)
+            {
+                var subPaths = fileDir.Split('/');
+                var parentFolder = subPaths[0];
+                foreach (var folder in subPaths.Skip(1))
+                {
+                    var targetFolder = string.Format("{0}/{1}", parentFolder, folder);
+                    if (AssetDatabase.IsValidFolder(targetFolder) == false)
+                        AssetDatabase.CreateFolder(parentFolder, folder);
+                    parentFolder = targetFolder;
+                }
+            }
 
-		public static string GetFilePath(PsdLayer layer, ImportUserData importSettings, out string dir)
-		{
-			string filename = string.Format("{0}.png", layer.Name);
+            // Write out the texture contents into the file
+            AssetDatabase.CreateAsset(texture, filepath);
+            var buf = texture.EncodeToPNG();
+            File.WriteAllBytes(filepath, buf);
 
-			string folder = "";
+            AssetDatabase.ImportAsset(filepath, ImportAssetOptions.ForceUpdate);
+            var textureObj = AssetDatabase.LoadAssetAtPath<Texture2D>(filepath);
 
-			if (importSettings.fileNaming != NamingConvention.LayerNameOnly)
-			{
-				bool isDir = importSettings.fileNaming == NamingConvention.CreateGroupFolders;
-				var docLayer = layer.Document as IPsdLayer;
-				var parent = layer.Parent;
-				while (parent != null && parent.Equals(docLayer) == false)
-				{
-					if (isDir)
-					{
-						if (string.IsNullOrEmpty(folder))
-							folder = parent.Name;
-						else
-							folder = string.Format("{0}/{1}", parent.Name, folder);
-					}
-					else
-					{
-						filename = string.Format("{0}_{1}", parent.Name, filename);
-					}
+            // Get the texture importer for the asset
+            var textureImporter = (TextureImporter) AssetImporter.GetAtPath(filepath);
+            // Read out the texture import settings so settings can be changed
+            var texSetting = new TextureImporterSettings();
+            textureImporter.ReadTextureSettings(texSetting);
+
+            var finalPPU = psdUnityImport.spritePixelsPerUnit;
+            switch (layerSettings.ScaleFactor)
+            {
+                case ScaleFactor.Half:
+                    finalPPU /= 2;
+                    break;
+                case ScaleFactor.Quarter:
+                    finalPPU /= 4;
+                    break;
+            }
+
+            // Change settings
+            texSetting.spriteAlignment = (int) layerSettings.Alignment;
+            texSetting.spritePivot = layerSettings.Pivot;
+            texSetting.spritePixelsPerUnit = finalPPU;
+            texSetting.filterMode = psdUnityImport.filterMode;
+            texSetting.wrapMode = psdUnityImport.wrapMode;
+            texSetting.textureType = TextureImporterType.Sprite;
+            texSetting.spriteMode = (int) SpriteImportMode.Single;
+            texSetting.mipmapEnabled = false;
+            texSetting.alphaIsTransparency = true;
+            texSetting.npotScale = TextureImporterNPOTScale.None;
+            // Set the rest of the texture settings
+            textureImporter.spritePackingTag = importSettings.PackingTag;
+            // Write in the texture import settings
+            textureImporter.SetTextureSettings(texSetting);
+
+            EditorUtility.SetDirty(textureObj);
+            AssetDatabase.WriteImportSettingsIfDirty(filepath);
+            AssetDatabase.ImportAsset(filepath, ImportAssetOptions.ForceUpdate);
+            return (Sprite) AssetDatabase.LoadAssetAtPath(filepath, typeof(Sprite));
+        }
+
+        public static string GetFilePath(PsdLayer layer, ImportUserData importSettings, out string dir)
+        {
+            var filename = string.Format("{0}.png", layer.Name);
+
+            var folder = "";
+
+            if (importSettings.fileNaming != NamingConvention.LayerNameOnly)
+            {
+                var isDir = importSettings.fileNaming == NamingConvention.CreateGroupFolders;
+                var docLayer = layer.Document as IPsdLayer;
+                var parent = layer.Parent;
+                while (parent != null && parent.Equals(docLayer) == false)
+                {
+                    if (isDir)
+                    {
+                        if (string.IsNullOrEmpty(folder))
+                            folder = parent.Name;
+                        else
+                            folder = string.Format("{0}/{1}", parent.Name, folder);
+                    }
+                    else
+                    {
+                        filename = string.Format("{0}_{1}", parent.Name, filename);
+                    }
+
                     parent = parent.Parent;
-					if (importSettings.groupMode == GroupMode.ParentOnly)
-						break;
-				}
-			}
+                    if (importSettings.groupMode == GroupMode.ParentOnly)
+                        break;
+                }
+            }
 
-			string finalDir = importSettings.TargetDirectory;
-			if (string.IsNullOrEmpty(folder) == false)
-				finalDir = string.Format("{0}/{1}", finalDir, folder);
-			// Sanitize directory
-			finalDir = SanitizeString(finalDir, Path.GetInvalidPathChars());
+            var finalDir = importSettings.TargetDirectory;
+            if (string.IsNullOrEmpty(folder) == false)
+                finalDir = string.Format("{0}/{1}", finalDir, folder);
+            // Sanitize directory
+            finalDir = SanitizeString(finalDir, Path.GetInvalidPathChars());
 
-			// Sanitize filename
-			filename = SanitizeString(filename, Path.GetInvalidFileNameChars());
+            // Sanitize filename
+            filename = SanitizeString(filename, Path.GetInvalidFileNameChars());
 
-			string filepath = string.Format("{0}/{1}", finalDir, filename);
-			dir = finalDir;
-			return filepath;
-		}
+            var filepath = string.Format("{0}/{1}", finalDir, filename);
+            dir = finalDir;
+            return filepath;
+        }
 
-		private static string SanitizeString(string text, char[] cleanChars)
-		{
-			text = string.Join("_", text.Split(cleanChars));
-			text = new string(text.Select(c =>
-			{
-				if (char.IsWhiteSpace(c))
-					return '_';
-				return c;
-			}).ToArray());
-			return text;
-		}
-		#endregion
+        private static string SanitizeString(string text, char[] cleanChars)
+        {
+            text = string.Join("_", text.Split(cleanChars));
+            text = new string(text.Select(c =>
+            {
+                if (char.IsWhiteSpace(c))
+                    return '_';
+                return c;
+            }).ToArray());
+            return text;
+        }
 
-		#region Reconstruction
+        #endregion
 
-		private static ReconstructData GetReconstructData(PsdDocument psdDoc, string psdPath, Vector2 documentPivot,
-													ImportUserData importSettings, ImportLayerData reconstructRoot)
-		{
-			// Get the texture import setting of the PSD
-			TextureImporter psdUnitySettings = (TextureImporter)AssetImporter.GetAtPath(psdPath);
-			TextureImporterSettings psdUnityImport = new TextureImporterSettings();
-			psdUnitySettings.ReadTextureSettings(psdUnityImport);
+        #region Reconstruction
 
-			Vector2 docSize = new Vector2(psdDoc.Width, psdDoc.Height);
-			ReconstructData data = new ReconstructData(docSize, documentPivot, psdUnitySettings.spritePixelsPerUnit);
+        private static ReconstructData GetReconstructData(PsdDocument psdDoc, string psdPath, Vector2 documentPivot,
+            ImportUserData importSettings, ImportLayerData reconstructRoot)
+        {
+            // Get the texture import setting of the PSD
+            var psdUnitySettings = (TextureImporter) AssetImporter.GetAtPath(psdPath);
+            var psdUnityImport = new TextureImporterSettings();
+            psdUnitySettings.ReadTextureSettings(psdUnityImport);
 
-			reconstructRoot.Iterate(
-				layerCallback: layer =>
-				{
-					if (layer.import == false)
-						return;
+            var docSize = new Vector2(psdDoc.Width, psdDoc.Height);
+            var data = new ReconstructData(docSize, documentPivot, psdUnitySettings.spritePixelsPerUnit);
 
-					var psdLayer = GetPsdLayerByIndex(psdDoc, layer.indexId);
+            reconstructRoot.Iterate(
+                layer =>
+                {
+                    if (layer.import == false)
+                        return;
 
-					Rect layerBounds = new Rect()
-					{
-						xMin = psdLayer.Left,
-						xMax = psdLayer.Right,
-						yMin = psdDoc.Height - psdLayer.Bottom,
-						yMax = psdDoc.Height - psdLayer.Top
-					};
-					data.layerBoundsIndex.Add(layer.indexId, layerBounds);
+                    var psdLayer = GetPsdLayerByIndex(psdDoc, layer.indexId);
 
-					string layerDir;
-					string layerPath = GetFilePath(psdLayer, importSettings, out layerDir);
-					Sprite layerSprite = AssetDatabase.LoadAssetAtPath<Sprite>(layerPath);
+                    var layerBounds = new Rect
+                    {
+                        xMin = psdLayer.Left,
+                        xMax = psdLayer.Right,
+                        yMin = psdDoc.Height - psdLayer.Bottom,
+                        yMax = psdDoc.Height - psdLayer.Top
+                    };
+                    data.layerBoundsIndex.Add(layer.indexId, layerBounds);
 
-					if (layerSprite == null)
-						layerSprite = ImportLayer(psdDoc, importSettings, layer, psdUnityImport);
+                    string layerDir;
+                    var layerPath = GetFilePath(psdLayer, importSettings, out layerDir);
+                    var layerSprite = AssetDatabase.LoadAssetAtPath<Sprite>(layerPath);
 
-					Vector2 spriteAnchor = Vector2.zero;
+                    if (layerSprite == null)
+                        layerSprite = ImportLayer(psdDoc, importSettings, layer, psdUnityImport);
 
-					if (layerSprite != null)
-					{
-						TextureImporter layerImporter = (TextureImporter)AssetImporter.GetAtPath(layerPath);
-						TextureImporterSettings layerSettings = new TextureImporterSettings();
-						layerImporter.ReadTextureSettings(layerSettings);
-						
-						if (layerSettings.spriteAlignment == (int) SpriteAlignment.Custom)
-							spriteAnchor = layerSettings.spritePivot;
-						else
-							spriteAnchor = AlignmentToPivot((SpriteAlignment) layerSettings.spriteAlignment);
-					}
-					data.AddSprite(layer.indexId, layerSprite, spriteAnchor);
-				},
-				canEnterGroup: checkGroup => checkGroup.import
-			);
+                    var spriteAnchor = Vector2.zero;
 
-			return data;
-		}
+                    if (layerSprite != null)
+                    {
+                        var layerImporter = (TextureImporter) AssetImporter.GetAtPath(layerPath);
+                        var layerSettings = new TextureImporterSettings();
+                        layerImporter.ReadTextureSettings(layerSettings);
 
-		public static void Reconstruct(Object psdFile, ImportUserData importSettings,
-										ImportLayerData reconstructRoot, Vector2 documentPivot,
-										IReconstructor reconstructor)
-		{
-			string psdPath = GetPsdFilepath(psdFile);
-			if (string.IsNullOrEmpty(psdPath))
-				return;
-			
-			using (var psdDoc = PsdDocument.Create(psdPath))
-			{
-				ReconstructData data = GetReconstructData(psdDoc, psdPath,
-												documentPivot, importSettings,
-												reconstructRoot);
-				
-				var GO = reconstructor.Reconstruct(reconstructRoot, data, Selection.activeGameObject);
-				if (GO != null)
-				{
-					EditorGUIUtility.PingObject(GO);
-					Selection.activeGameObject = GO;
-				}
-			}
-		}
+                        if (layerSettings.spriteAlignment == (int) SpriteAlignment.Custom)
+                            spriteAnchor = layerSettings.spritePivot;
+                        else
+                            spriteAnchor = AlignmentToPivot((SpriteAlignment) layerSettings.spriteAlignment);
+                    }
 
-		public static Vector2 AlignmentToPivot(SpriteAlignment spriteAlignment)
-		{
-			Vector2 pivot = Vector2.zero;
-			switch (spriteAlignment)
-			{
-				case SpriteAlignment.TopLeft:
-				case SpriteAlignment.TopCenter:
-				case SpriteAlignment.TopRight:
-					pivot.y = 1f;
-					break;
-				case SpriteAlignment.LeftCenter:
-				case SpriteAlignment.Center:
-				case SpriteAlignment.RightCenter:
-					pivot.y = 0.5f;
-					break;
-				case SpriteAlignment.BottomLeft:
-				case SpriteAlignment.BottomCenter:
-				case SpriteAlignment.BottomRight:
-					pivot.y = 0f;
-					break;
-			}
-			switch (spriteAlignment)
-			{
-				case SpriteAlignment.TopLeft:
-				case SpriteAlignment.LeftCenter:
-				case SpriteAlignment.BottomLeft:
-					pivot.x = 0f;
-					break;
-				case SpriteAlignment.TopCenter:
-				case SpriteAlignment.Center:
-				case SpriteAlignment.BottomCenter:
-					pivot.x = 0.5f;
-					break;
-				case SpriteAlignment.TopRight:
-				case SpriteAlignment.RightCenter:
-				case SpriteAlignment.BottomRight:
-					pivot.x = 1f;
-					break;
-			}
-			return pivot;
-		}
-		#endregion
-	}
+                    data.AddSprite(layer.indexId, layerSprite, spriteAnchor);
+                },
+                checkGroup => checkGroup.import
+            );
+
+            return data;
+        }
+
+        public static void Reconstruct(Object psdFile, ImportUserData importSettings,
+            ImportLayerData reconstructRoot, Vector2 documentPivot,
+            IReconstructor reconstructor)
+        {
+            var psdPath = GetPsdFilepath(psdFile);
+            if (string.IsNullOrEmpty(psdPath))
+                return;
+
+            using (var psdDoc = PsdDocument.Create(psdPath))
+            {
+                var data = GetReconstructData(psdDoc, psdPath,
+                    documentPivot, importSettings,
+                    reconstructRoot);
+
+                var GO = reconstructor.Reconstruct(reconstructRoot, data, Selection.activeGameObject);
+                if (GO != null)
+                {
+                    EditorGUIUtility.PingObject(GO);
+                    Selection.activeGameObject = GO;
+                }
+            }
+        }
+
+        public static Vector2 AlignmentToPivot(SpriteAlignment spriteAlignment)
+        {
+            var pivot = Vector2.zero;
+            switch (spriteAlignment)
+            {
+                case SpriteAlignment.TopLeft:
+                case SpriteAlignment.TopCenter:
+                case SpriteAlignment.TopRight:
+                    pivot.y = 1f;
+                    break;
+                case SpriteAlignment.LeftCenter:
+                case SpriteAlignment.Center:
+                case SpriteAlignment.RightCenter:
+                    pivot.y = 0.5f;
+                    break;
+                case SpriteAlignment.BottomLeft:
+                case SpriteAlignment.BottomCenter:
+                case SpriteAlignment.BottomRight:
+                    pivot.y = 0f;
+                    break;
+            }
+
+            switch (spriteAlignment)
+            {
+                case SpriteAlignment.TopLeft:
+                case SpriteAlignment.LeftCenter:
+                case SpriteAlignment.BottomLeft:
+                    pivot.x = 0f;
+                    break;
+                case SpriteAlignment.TopCenter:
+                case SpriteAlignment.Center:
+                case SpriteAlignment.BottomCenter:
+                    pivot.x = 0.5f;
+                    break;
+                case SpriteAlignment.TopRight:
+                case SpriteAlignment.RightCenter:
+                case SpriteAlignment.BottomRight:
+                    pivot.x = 1f;
+                    break;
+            }
+
+            return pivot;
+        }
+
+        #endregion
+    }
 }

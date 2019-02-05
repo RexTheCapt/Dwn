@@ -1,17 +1,28 @@
 ﻿#if !NO_UNITY
+
+#region usings
+
 using System;
 using System.Collections.Generic;
+using SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters;
 using UnityEngine;
 
-namespace SubjectNerd.PsdImporter.FullSerializer {
-    partial class fsConverterRegistrar {
-        public static Internal.DirectConverters.RectOffset_DirectConverter Register_RectOffset_DirectConverter;
+#endregion
+
+namespace SubjectNerd.PsdImporter.FullSerializer
+{
+    partial class FsConverterRegistrar
+    {
+        public static RectOffset_DirectConverter Register_RectOffset_DirectConverter;
     }
 }
 
-namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters {
-    public class RectOffset_DirectConverter : fsDirectConverter<RectOffset> {
-        protected override fsResult DoSerialize(RectOffset model, Dictionary<string, fsData> serialized) {
+namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters
+{
+    public class RectOffset_DirectConverter : fsDirectConverter<RectOffset>
+    {
+        protected override fsResult DoSerialize(RectOffset model, Dictionary<string, fsData> serialized)
+        {
             var result = fsResult.Success;
 
             result += SerializeMember(serialized, null, "bottom", model.bottom);
@@ -22,7 +33,8 @@ namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters {
             return result;
         }
 
-        protected override fsResult DoDeserialize(Dictionary<string, fsData> data, ref RectOffset model) {
+        protected override fsResult DoDeserialize(Dictionary<string, fsData> data, ref RectOffset model)
+        {
             var result = fsResult.Success;
 
             var t0 = model.bottom;
@@ -44,7 +56,8 @@ namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters {
             return result;
         }
 
-        public override object CreateInstance(fsData data, Type storageType) {
+        public override object CreateInstance(fsData data, Type storageType)
+        {
             return new RectOffset();
         }
     }

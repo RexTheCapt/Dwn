@@ -1,12 +1,18 @@
+#region usings
+
 using System;
 
-namespace SubjectNerd.PsdImporter.FullSerializer {
+#endregion
+
+namespace Assets.PsdToUnity.Editor.FullSerializer.Aot
+{
     /// <summary>
-    /// Interface that AOT generated converters extend. Used to check to see if
-    /// the AOT converter is up to date.
+    ///     Interface that AOT generated converters extend. Used to check to see if
+    ///     the AOT converter is up to date.
     /// </summary>
-    public interface fsIAotConverter {
+    public interface IFsIAotConverter
+    {
         Type ModelType { get; }
-        fsAotVersionInfo VersionInfo { get; }
+        FsAotVersionInfo VersionInfo { get; }
     }
 }

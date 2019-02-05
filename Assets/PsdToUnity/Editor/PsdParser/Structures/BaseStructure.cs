@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,25 +18,32 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System.Collections.Generic;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser.Structures
 {
-    class BaseStructure : Properties
+    internal class BaseStructure : Properties
     {
         public BaseStructure(PsdReader reader)
         {
-            List<object> items = new List<object>();
-            int count = reader.ReadInt32();
-            for (int i = 0; i < count; i++)
+            var items = new List<object>();
+            var count = reader.ReadInt32();
+            for (var i = 0; i < count; i++)
             {
-                string type = reader.ReadType();
-                object value = StructureReader.Read(type, reader);
+                var type = reader.ReadType();
+                var value = StructureReader.Read(type, reader);
                 items.Add(value);
             }
-            this.Add("Items", items.ToArray());
+
+            Add("Items", items.ToArray());
         }
     }
 }

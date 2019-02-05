@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,35 +18,42 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
+#region usings
+
 using System;
+using SubjectNerd.PsdImporter.PsdParser;
 using SubjectNerd.PsdImporter.PsdParser.Readers.LayerAndMaskInformation;
 
-namespace SubjectNerd.PsdImporter.PsdParser
-{
-    class LinkedLayer : ILinkedLayer
-    {
-        private readonly string name;
-        private readonly Guid id;
-        private readonly LinkedDocumentReader documentReader;
-        private readonly LinkedDocumnetFileHeaderReader fileHeaderReader;
+#endregion
 
-        public LinkedLayer(string name, Guid id, LinkedDocumentReader documentReader, LinkedDocumnetFileHeaderReader fileHeaderReader)
+namespace Assets.PsdToUnity.Editor.PsdParser
+{
+    internal class LinkedLayer : ILinkedLayer
+    {
+        private readonly LinkedDocumentReader _documentReader;
+        private readonly LinkedDocumnetFileHeaderReader _fileHeaderReader;
+        private readonly Guid _id;
+        private readonly string _name;
+
+        public LinkedLayer(string name, Guid id, LinkedDocumentReader documentReader,
+            LinkedDocumnetFileHeaderReader fileHeaderReader)
         {
-            this.name = name;
-            this.id = id;
-            this.documentReader = documentReader;
-            this.fileHeaderReader = fileHeaderReader;
+            _name = name;
+            _id = id;
+            _documentReader = documentReader;
+            _fileHeaderReader = fileHeaderReader;
         }
 
         public PsdDocument Document
         {
             get
             {
-                if (this.documentReader == null)
+                if (_documentReader == null)
                     return null;
-                return this.documentReader.Value; 
+                return _documentReader.Value;
             }
         }
 
@@ -56,27 +64,27 @@ namespace SubjectNerd.PsdImporter.PsdParser
 
         public bool HasDocument
         {
-            get { return this.documentReader != null; }
+            get { return _documentReader != null; }
         }
 
         public Guid ID
         {
-            get { return this.id; }
+            get { return _id; }
         }
 
         public string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
         public int Width
         {
-            get { return this.fileHeaderReader.Value.Width; }
+            get { return _fileHeaderReader.Value.Width; }
         }
 
         public int Height
         {
-            get { return this.fileHeaderReader.Value.Height; }
+            get { return _fileHeaderReader.Value.Height; }
         }
     }
 }

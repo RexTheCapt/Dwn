@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,76 +18,25 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.Linq;
+using SubjectNerd.PsdImporter.PsdParser;
 
-namespace SubjectNerd.PsdImporter.PsdParser
+#endregion
+
+namespace Assets.PsdToUnity.Editor.PsdParser
 {
     public class LayerRecords
     {
-        private Channel[] channels;
+        private LayerBlendingRanges _blendingRanges;
 
-        private LayerMask layerMask;
-        private LayerBlendingRanges blendingRanges;
-        private IProperties resources;
-        private string name;
-        private SectionType sectionType;
-        private Guid placedID;
-
-        public void SetExtraRecords(LayerMask layerMask, LayerBlendingRanges blendingRanges, IProperties resources, string name)
-        {
-            this.layerMask = layerMask;
-            this.blendingRanges = blendingRanges;
-            this.resources = resources;
-            this.name = name;
-
-            this.resources.TryGetValue<string>(ref this.name, "luni.Name");
-            this.resources.TryGetValue<SectionType>(ref this.sectionType, "lsct.SectionType");
-
-            if (this.resources.Contains("SoLd.Idnt") == true)
-                this.placedID = this.resources.ToGuid("SoLd.Idnt");
-            else if (this.resources.Contains("SoLE.Idnt") == true)
-                this.placedID = this.resources.ToGuid("SoLE.Idnt");
-
-
-            foreach (var item in this.channels)
-            {
-                switch (item.Type)
-                {
-                    case ChannelType.Mask:
-                        {
-                            if (this.layerMask != null)
-                            {
-                                item.Width = this.layerMask.Width;
-                                item.Height = this.layerMask.Height;
-                            }
-                        }
-                        break;
-                    case ChannelType.Alpha:
-                        {
-                            if (this.resources.Contains("iOpa") == true)
-                            {
-                                byte opa = this.resources.ToByte("iOpa", "Opacity");
-                                item.Opacity = opa / 255.0f;
-                            }
-                        }
-                        break;
-                }
-            }
-        }
-
-        public void ValidateSize()
-        {
-            int width = this.Right - Left;
-            int height = this.Bottom - this.Top;
-
-            if ((width > 0x3000) || (height > 0x3000))
-            {
-                throw new NotSupportedException(string.Format("Invalidated size ({0}, {1})", width, height));
-            }
-        }
+        private string _name;
+        private SectionType _sectionType;
 
         public int Left { get; set; }
 
@@ -98,41 +48,32 @@ namespace SubjectNerd.PsdImporter.PsdParser
 
         public int Width
         {
-            get { return this.Right - this.Left; }
+            get { return Right - Left; }
         }
 
         public int Height
         {
-            get { return this.Bottom - this.Top; }
+            get { return Bottom - Top; }
         }
 
         public int ChannelCount
         {
-            get 
+            get
             {
-                if (this.channels == null)
+                if (Channels == null)
                     return 0;
-                return this.channels.Length; 
+                return Channels.Length;
             }
             set
             {
-                if (value > 0x38)
-                {
-                    throw new Exception(string.Format("Too many channels : {0}", value));
-                }
+                if (value > 0x38) throw new Exception(string.Format("Too many channels : {0}", value));
 
-                this.channels = new Channel[value];
-                for (int i = 0; i < value; i++)
-                {
-                    this.channels[i] = new Channel();
-                }
+                Channels = new Channel[value];
+                for (var i = 0; i < value; i++) Channels[i] = new Channel();
             }
         }
 
-        public Channel[] Channels
-        {
-            get { return this.channels; }
-        }
+        public Channel[] Channels { get; private set; }
 
         public BlendMode BlendMode { get; set; }
 
@@ -146,37 +87,78 @@ namespace SubjectNerd.PsdImporter.PsdParser
 
         public long ChannelSize
         {
-            get { return this.channels.Select(item => item.Size).Aggregate((v, n) => v + n); }
+            get { return Channels.Select(item => item.Size).Aggregate((v, n) => v + n); }
         }
 
         public SectionType SectionType
         {
-            get { return this.sectionType; }
+            get { return _sectionType; }
         }
 
-        public Guid PlacedID
-        {
-            get { return this.placedID; }
-        }
+        public Guid PlacedId { get; private set; }
 
         public string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
-        public LayerMask Mask
-        {
-            get { return this.layerMask; }
-        }
+        public LayerMask Mask { get; private set; }
 
         public object BlendingRanges
         {
-            get { return this.blendingRanges; }
+            get { return _blendingRanges; }
         }
 
-        public IProperties Resources
+        public IProperties Resources { get; private set; }
+
+        public void SetExtraRecords(LayerMask layerMask, LayerBlendingRanges blendingRanges, IProperties resources,
+            string name)
         {
-            get { return this.resources; }
+            Mask = layerMask;
+            _blendingRanges = blendingRanges;
+            Resources = resources;
+            _name = name;
+
+            Resources.TryGetValue(ref _name, "luni.Name");
+            Resources.TryGetValue(ref _sectionType, "lsct.SectionType");
+
+            if (Resources.Contains("SoLd.Idnt"))
+                PlacedId = Resources.ToGuid("SoLd.Idnt");
+            else if (Resources.Contains("SoLE.Idnt"))
+                PlacedId = Resources.ToGuid("SoLE.Idnt");
+
+
+            foreach (var item in Channels)
+                switch (item.Type)
+                {
+                    case ChannelType.Mask:
+                    {
+                        if (Mask != null)
+                        {
+                            item.Width = Mask.Width;
+                            item.Height = Mask.Height;
+                        }
+                    }
+                        break;
+                    case ChannelType.Alpha:
+                    {
+                        if (Resources.Contains("iOpa"))
+                        {
+                            var opa = Resources.ToByte("iOpa", "Opacity");
+                            item.Opacity = opa / 255.0f;
+                        }
+                    }
+                        break;
+                }
+        }
+
+        public void ValidateSize()
+        {
+            var width = Right - Left;
+            var height = Bottom - Top;
+
+            if (width > 0x3000 || height > 0x3000)
+                throw new NotSupportedException(string.Format("Invalidated size ({0}, {1})", width, height));
         }
     }
 }

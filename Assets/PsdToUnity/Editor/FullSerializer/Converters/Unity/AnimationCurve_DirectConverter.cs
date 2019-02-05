@@ -1,17 +1,20 @@
 #if !NO_UNITY
+
+#region usings
+
 using System;
 using System.Collections.Generic;
+using SubjectNerd.PsdImporter.FullSerializer;
 using UnityEngine;
 
-namespace SubjectNerd.PsdImporter.FullSerializer {
-    partial class fsConverterRegistrar {
-        public static Internal.DirectConverters.AnimationCurve_DirectConverter Register_AnimationCurve_DirectConverter;
-    }
-}
+#endregion
 
-namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters {
-    public class AnimationCurve_DirectConverter : fsDirectConverter<AnimationCurve> {
-        protected override fsResult DoSerialize(AnimationCurve model, Dictionary<string, fsData> serialized) {
+namespace Assets.PsdToUnity.Editor.FullSerializer.Converters.Unity
+{
+    public abstract class AnimationCurveDirectConverter : fsDirectConverter<AnimationCurve>
+    {
+        protected override fsResult DoSerialize(AnimationCurve model, Dictionary<string, fsData> serialized)
+        {
             var result = fsResult.Success;
 
             result += SerializeMember(serialized, null, "keys", model.keys);
@@ -21,25 +24,27 @@ namespace SubjectNerd.PsdImporter.FullSerializer.Internal.DirectConverters {
             return result;
         }
 
-        protected override fsResult DoDeserialize(Dictionary<string, fsData> data, ref AnimationCurve model) {
+        protected override fsResult DoDeserialize(Dictionary<string, fsData> data, ref AnimationCurve model)
+        {
             var result = fsResult.Success;
 
-            var t0 = model.keys;
+            Keyframe[] t0;
             result += DeserializeMember(data, null, "keys", out t0);
             model.keys = t0;
 
-            var t1 = model.preWrapMode;
+            WrapMode t1;
             result += DeserializeMember(data, null, "preWrapMode", out t1);
             model.preWrapMode = t1;
 
-            var t2 = model.postWrapMode;
+            WrapMode t2;
             result += DeserializeMember(data, null, "postWrapMode", out t2);
             model.postWrapMode = t2;
 
             return result;
         }
 
-        public override object CreateInstance(fsData data, Type storageType) {
+        public override object CreateInstance(fsData data, Type storageType)
+        {
             return new AnimationCurve();
         }
     }

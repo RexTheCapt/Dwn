@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,51 +18,56 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
 
-using System.Collections.Generic;
+#region usings
 
-namespace SubjectNerd.PsdImporter.PsdParser
+using System.Collections;
+using System.Collections.Generic;
+using SubjectNerd.PsdImporter.PsdParser;
+
+#endregion
+
+namespace Assets.PsdToUnity.Editor.PsdParser
 {
-    abstract class LazyProperties : LazyValueReader<IProperties>, IProperties
+    internal abstract class LazyProperties : LazyValueReader<IProperties>, IProperties
     {
         protected LazyProperties(PsdReader reader, object userData)
             : base(reader, userData)
         {
-
         }
 
         protected LazyProperties(PsdReader reader, long length, object userData)
             : base(reader, length, userData)
         {
-
         }
 
         public bool Contains(string property)
         {
-            return this.Value.Contains(property);
+            return Value.Contains(property);
         }
 
         public object this[string property]
         {
-            get { return this.Value[property]; }
+            get { return Value[property]; }
         }
 
         public int Count
         {
-            get { return this.Value.Count; }
+            get { return Value.Count; }
         }
 
         #region IProperties
 
         IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
         {
-            return (this.Value as IProperties).GetEnumerator();
+            return Value.GetEnumerator();
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            return (this.Value as IProperties).GetEnumerator();
+            return Value.GetEnumerator();
         }
 
         #endregion

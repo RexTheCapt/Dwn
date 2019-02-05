@@ -1,4 +1,5 @@
 ﻿#region License
+
 //Ntreev Photoshop Document Parser for .Net
 //
 //Released under the MIT License.
@@ -17,33 +18,39 @@
 //WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 //OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #endregion
+
+#region usings
 
 using System;
 using System.IO;
+using Assets.PsdToUnity.Editor.PsdParser;
+
+#endregion
 
 namespace SubjectNerd.PsdImporter.PsdParser
 {
-    class EmbeddedLayer : ILinkedLayer
+    internal class EmbeddedLayer : ILinkedLayer
     {
+        private readonly Uri absoluteUri;
+        private readonly int height;
         private readonly Guid id;
         private readonly PsdResolver resolver;
-        private readonly Uri absoluteUri;
-        private PsdDocument document;
         private readonly int width;
-        private readonly int height;
-        
+        private PsdDocument document;
+
         public EmbeddedLayer(Guid id, PsdResolver resolver, Uri absoluteUri)
         {
             this.id = id;
             this.resolver = resolver;
             this.absoluteUri = absoluteUri;
 
-            if (File.Exists(this.absoluteUri.LocalPath) == true)
+            if (File.Exists(this.absoluteUri.LocalPath))
             {
                 var header = FileHeaderSection.FromFile(this.absoluteUri.LocalPath);
-                this.width = header.Width;
-                this.height = header.Height;
+                width = header.Width;
+                height = header.Height;
             }
         }
 
@@ -51,42 +58,39 @@ namespace SubjectNerd.PsdImporter.PsdParser
         {
             get
             {
-                if (this.document == null)
-                {
-                    this.document = this.resolver.GetDocument(this.absoluteUri);
-                }
-                return this.document;
+                if (document == null) document = resolver.GetDocument(absoluteUri);
+                return document;
             }
         }
 
         public Uri AbsoluteUri
         {
-            get { return this.absoluteUri; }
+            get { return absoluteUri; }
         }
 
         public bool HasDocument
         {
-            get { return File.Exists(this.absoluteUri.LocalPath); }
+            get { return File.Exists(absoluteUri.LocalPath); }
         }
 
         public Guid ID
         {
-            get { return this.id; }
+            get { return id; }
         }
 
         public string Name
         {
-            get { return this.absoluteUri.LocalPath; }
+            get { return absoluteUri.LocalPath; }
         }
 
         public int Width
         {
-            get { return this.width; }
+            get { return width; }
         }
 
         public int Height
         {
-            get { return this.height; }
+            get { return height; }
         }
     }
 }

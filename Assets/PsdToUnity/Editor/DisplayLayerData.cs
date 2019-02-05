@@ -22,19 +22,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#region usings
+
 using System.Collections.Generic;
 
-namespace SubjectNerd.PsdImporter
-{
-	public class DisplayLayerData
-	{
-		public int[] indexId;
-		public bool isVisible;
-		public bool isGroup;
-		public bool isOpen;
-		public bool isLinked;
-		public int[] linkId;
+#endregion
 
-		public List<DisplayLayerData> Childs = new List<DisplayLayerData>();
-	}
+namespace Assets.PsdToUnity.Editor
+{
+    public class DisplayLayerData
+    {
+        public List<DisplayLayerData> Childs = new List<DisplayLayerData>();
+        public int[] IndexId;
+        public bool isGroup;
+        public bool isLinked;
+        public bool isOpen;
+        public bool isVisible;
+        public int[] linkId;
+    }
 }
