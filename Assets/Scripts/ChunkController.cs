@@ -15,7 +15,9 @@ public class ChunkController : MonoBehaviour
     public Sprite[] sprites;
     public float generationDelayMs = 100f;
     public int chunkRadious = 1;
+    public bool RenewChunkAge = true;
     public float chunkMaxAge = 30f;
+    public bool DeleteChunks = false;
     public float perlinMod = 0.01f;
 
     private float _generationDelayTicks;
@@ -33,6 +35,21 @@ public class ChunkController : MonoBehaviour
 
     void Update()
     {
+        if (DeleteChunks)
+        {
+            PlayerChunkTracker PCT = PlayerGameObject.GetComponent<PlayerChunkTracker>();
+            PCT.CurrentChunkGameObjects.Clear();
+
+            GameObject[] chunksGameObjects = GameObject.FindGameObjectsWithTag("Chunk");
+
+            for (int i = chunksGameObjects.Length; i >= 0; i--)
+            {
+                Destroy(chunksGameObjects[i]);
+            }
+
+            // Spawn chunks around player
+        }
+
         _generationDelayTicks += Time.deltaTime * 1000;
 
         if (_generationDelayTicks > generationDelayMs)
@@ -41,8 +58,8 @@ public class ChunkController : MonoBehaviour
             bool chunkGenerated = false;
 
             PlayerChunkTracker playerChunkTracker = PlayerGameObject.GetComponent<PlayerChunkTracker>();
-            int chunkObjectIndex = playerChunkTracker.CurrentChunkGameObjects.Count - 1;
-            ChunkPosition currentChunkPositionClass = playerChunkTracker.CurrentChunkGameObjects[chunkObjectIndex].GetComponent<ChunkPosition>();
+            // int chunkObjectIndex = playerChunkTracker.CurrentChunkGameObjects.Count - 1;
+            // ChunkPosition currentChunkPositionClass = playerChunkTracker.CurrentChunkGameObjects[chunkObjectIndex].GetComponent<ChunkPosition>();
 
             foreach (GameObject currentChunkGameObject in playerChunkTracker.CurrentChunkGameObjects)
             {
@@ -68,7 +85,9 @@ public class ChunkController : MonoBehaviour
                         }
                         else
                         {
-                            foundChunkGameObject.GetComponent<ChunkRemoval>().chunkAge = 0;
+                            if(RenewChunkAge)
+                                foundChunkGameObject.GetComponent<ChunkRemoval>().chunkAge = 0;
+
                             foundChunkGameObject.SetActive(true);
                         }
                     }
